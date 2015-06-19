@@ -1,0 +1,8 @@
+name = CWRC XML Database
+description = Islandora/Fedora connection to an XML Database
+dependencies[] = islandora
+dependencies[] = libraries
+core = 7.x
+version = 7.x-dev
+configure = admin/islandora/tools/islandora_cwrc_basex
+package = Islandora Tools

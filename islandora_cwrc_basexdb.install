@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for this module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function islandora_cwrc_basexdb_requirements($phase) {
+  $t = get_t();
+  $requirements = array(
+    'cwrc' => array('title' => $t('CWRC BaseX XML Database')),
+  );
+  $library = array(
+    'library path' => libraries_get_path('basex-api'),
+  );
+  if (file_exists($library['library path'])) {
+    $requirements['cwrc']['severity'] = REQUIREMENT_OK;
+  }
+  else {
+    $requirements['cwrc']['severity'] = REQUIREMENT_ERROR;
+    $requirements['cwrc']['value'] = $t('Not found');
+    $requirements['cwrc']['description'] = $t('The <a href="@url">BaseX PHP client Library</a> is missing. <a href="@download">Download @library-file</a> and extract it into the <code>@directory</code> directory. Add the folder <code>@library-folder</code> and add @library-file.', array(
+        '@cwrc' => 'https://github.com/BaseXdb/basex',
+        '@download' => 'https://github.com/BaseXdb/basex/blob/master/basex-api/src/main/php/BaseXClient.php',
+        '@directory' => 'sites/all/libraries',
+        '@library-folder' => 'basex-api',
+        '@library-file' => 'BaseXClient.php')
+    );
+  }
+  return $requirements;
+}
+
+
+
+
+/**
+ * Implements hook_install().
+ *
+ * @see islandora_cwrc_writer_islandora_required_objects()
+ */
+function islandora_cwrc_basexdb_install() {
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_cwrc_basexdb_uninstall() {
+  //module_load_include('inc', 'islandora', 'includes/solution_packs');
+  //islandora_uninstall_solution_pack('islandora_cwrc_basexdb');
+  $variables = array(
+    'islandora_cwrc_basexdb_server_url',
+    'islandora_cwrc_basexdb_server_port',
+    'islandora_cwrc_basexdb_database_main',
+    'islandora_cwrc_basexdb_database_cache',
+  );
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}
+
