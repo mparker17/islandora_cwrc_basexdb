@@ -29,6 +29,15 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
 
+  $items['islandora_cwrc_basexdb_load_by_last_modified'] = array(
+    'description' => 'Load XML Database',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_load_by_last_modified'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
+
+
   $items['islandora_cwrc_basexdb_test'] = array(
     'description' => 'Test connection with XML Database',
     'examples' => array(
@@ -107,6 +116,70 @@ function drush_islandora_cwrc_basexdb_drop_db()
      print $e->getMessage();
   } 
 }
+
+/**
+ * Load content from Islandora/Fedora into BaseX database
+ *
+ */
+function drush_islandora_cwrc_basexdb_load_by_last_modified()
+{
+  try 
+  {
+    drush_print("Load XML Database content from Islandora/Fedora by last modified date");
+    
+    // Include modules.
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+
+    // connection to Tuque/Islandora
+    $fedoraConnection = null;
+    drush_islandora_cwrc_basexdb_init($fedoraConnection);
+
+    // connection to the BaseXDB 
+    $basexSession = null;
+    $basexSession = islandora_cwrc_basexdb_init();
+
+
+    // https://groups.google.com/forum/#!topic/fedora-community/FoKsrCjZzEM
+    // https://groups.google.com/forum/#!searchin/islandora/jms/islandora/YVayZCbx-vQ/KRe0X49YYqkJ
+    $startDate = "'2014-12-07T15:29:21.374Z";
+    $query = <<<EOQ
+    SELECT ?object
+    FROM <#ri>
+    WHERE {
+      ?object <fedora-view:lastModifiedDate> ?modified .
+      FILTER ( 
+        ?modified > '2015-06-17T15:29:21.374Z'^^<xml-schema:dateTime>
+      )
+    }
+EOQ;
+
+    $results = $fedoraConnection->repository->ri->sparqlQuery($query);
+
+
+    drush_print("results:");
+    
+    var_dump($results);  
+    
+    foreach ($results as $result) {
+      //var_dump($result);  
+      $pid = $result['pid']['value'];
+      $type = $result['type']['value'];
+      $type = $result['object']['value'];
+      drush_print($pid);
+
+    }
+
+    $basexSession->close();
+
+  } catch (Exception $e) {
+     // print exception
+     print $e->getMessage();
+  } 
+}
+
+
+
 
 /**
  * Test BaseX 
