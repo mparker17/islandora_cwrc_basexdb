@@ -18,4 +18,4 @@ Install
 = https://www.drupal.org/project/encryptfapi
 
 
- 
+= be sure to update firewall rules and username/password for BaseX server 

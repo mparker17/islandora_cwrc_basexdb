@@ -122,4 +122,3 @@ function islandora_cwrc_basexdb_variable_get($name) {
 */
 
 
-
