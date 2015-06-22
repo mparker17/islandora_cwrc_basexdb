@@ -14,6 +14,8 @@ Install
 = install BaseX v8.2+ as per directions - http://basex.org/products/download/all-downloads/
 = add to the Drupal libraries directory
 == basex-api/BaseXclient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
+= https://www.drupal.org/project/encrypt
+= https://www.drupal.org/project/encryptfapi
 
 
  
