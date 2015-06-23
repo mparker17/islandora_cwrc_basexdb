@@ -138,29 +138,13 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     // connection to the BaseXDB 
     $basexSession = null;
     $basexSession = islandora_cwrc_basexdb_init();
-
-
-    
-    //  ToDo limit results to only Objects not datastreams...
-
-
-
-
+    $basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
+    drush_print($basexSession->info());
 
     // https://groups.google.com/forum/#!topic/fedora-community/FoKsrCjZzEM
     // https://groups.google.com/forum/#!searchin/islandora/jms/islandora/YVayZCbx-vQ/KRe0X49YYqkJ
+    //https://groups.google.com/forum/#!searchin/islandora/mulgara$3Aafter/islandora/ecV7PwQywRM/EFMT4mGIcQUJ
     $startDate = "2015-06-17T15:29:21.374Z";
-    $query = <<<EOQ
-    SELECT ?object
-    FROM <#ri>
-    WHERE {
-      ?object <fedora-view:lastModifiedDate> ?modified ;
-      <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0>;
-      FILTER ( 
-        ?modified > '2015-06-17T15:29:21.374Z'^^<xml-schema:dateTime>
-      )
-    }
-EOQ;
 
     $query = <<<EOQ
     SELECT ?object
@@ -176,15 +160,28 @@ EOQ;
 
     drush_print($query);
 
+    //islandora_cwrc_basexdb_add_content('islandora:75a7614e-fd23-431a-ae36-6f521fa83990', $fedoraConnection);
+
+
     $results = $fedoraConnection->repository->ri->sparqlQuery($query);
 
     drush_print("results:");
     
     //var_dump($results);  
     foreach ($results as $result) {
-      $pid = $result['object']['value']; // match SparQL select term
-      drush_print($pid);
+      try {
+        $pid = $result['object']['value']; // match SparQL select term
+        drush_print($pid);
+        drush_print(islandora_cwrc_basexdb_add_content($pid, $basexSession));
+        drush_print($basexSession->info());
 
+      }
+      catch (Exception $e)
+      {
+        $file_error_count++;
+        drush_print("pid=$pid was not added.");
+        drush_print($e->getMessage());
+      }
     }
 
     $basexSession->close();
