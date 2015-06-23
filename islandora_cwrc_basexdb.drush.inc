@@ -140,32 +140,49 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     $basexSession = islandora_cwrc_basexdb_init();
 
 
+    
+    //  ToDo limit results to only Objects not datastreams...
+
+
+
+
+
     // https://groups.google.com/forum/#!topic/fedora-community/FoKsrCjZzEM
     // https://groups.google.com/forum/#!searchin/islandora/jms/islandora/YVayZCbx-vQ/KRe0X49YYqkJ
-    $startDate = "'2014-12-07T15:29:21.374Z";
+    $startDate = "2015-06-17T15:29:21.374Z";
     $query = <<<EOQ
     SELECT ?object
     FROM <#ri>
     WHERE {
-      ?object <fedora-view:lastModifiedDate> ?modified .
+      ?object <fedora-view:lastModifiedDate> ?modified ;
+      <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0>;
       FILTER ( 
         ?modified > '2015-06-17T15:29:21.374Z'^^<xml-schema:dateTime>
       )
     }
 EOQ;
 
-    $results = $fedoraConnection->repository->ri->sparqlQuery($query);
+    $query = <<<EOQ
+    SELECT ?object
+    FROM <#ri>
+    WHERE {
+      ?object <fedora-view:lastModifiedDate> ?modified ;
+      <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0>;
+      FILTER ( 
+        ?modified > '$startDate'^^<xml-schema:dateTime>
+      )
+    }
+EOQ;
 
+    drush_print($query);
+
+    $results = $fedoraConnection->repository->ri->sparqlQuery($query);
 
     drush_print("results:");
     
-    var_dump($results);  
-    
+    //var_dump($results);  
     foreach ($results as $result) {
-      //var_dump($result);  
-      $pid = $result['pid']['value'];
-      $type = $result['type']['value'];
-      $type = $result['object']['value'];
+      $pid = $result['object']['value']; // match SparQL select term
       drush_print($pid);
 
     }
