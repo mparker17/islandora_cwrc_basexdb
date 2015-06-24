@@ -93,15 +93,9 @@ function islandora_cwrc_basexdb_add_content($pid, $basexSession)
   $obj = islandora_object_load($pid);
   if (!$obj)
   {
-    // set timezone to user timezone
-    date_default_timezone_set($str_user_timezone);
-
     $date = new DateTime('now');
     $date->setTimezone(new DateTimeZone('UTC'));
     $str_server_now = $date->format('Y-m-d\TH:i:s\Z');
-
-    // return timezone to server default
-    date_default_timezone_set($str_server_timezone);
 
     return 'Error: failed to load - ['.$pid. '] ' . $str_server_now ;
   }
@@ -148,8 +142,9 @@ function islandora_cwrc_basexdb_add_content($pid, $basexSession)
   
   $dom->appendChild($rootNode);
 
+  // add to the XML database (or replace if exists)
+  $basexSession->replace("/cwrc/obj[@pid='$obj->id']", $dom->saveXML());
   //print($dom->saveXML());
-  $basexSession->replace('/cwrc', $dom->saveXML());
 
 
   $ret = null;
