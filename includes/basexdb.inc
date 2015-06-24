@@ -125,7 +125,7 @@ function islandora_cwrc_basexdb_add_content($pid, $basexSession)
   foreach ($obj as $datastream) {
     if ($datastream->id !== 'POLICY')
     {
-      if  ($datastream->mimetype==='text/xml' or $datastream->mimetype==='application/xml' )
+      if  ($datastream->mimetype==='text/xml' or $datastream->mimetype==='application/xml' or $datastream->id==='RELS-EXT' )
       {  
         // create DOM from datastream content
         $tmpDom = new DomDocument("1.0", "UTF-8");
