@@ -46,7 +46,38 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
 
+  $items['islandora_cwrc_basexdb_test_auth'] = array(
+    'description' => 'Test Fedora XACML access control',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_test_auth'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
+
+
   return $items;
+}
+
+
+function drush_islandora_cwrc_basexdb_test_auth()
+{
+
+  drush_islandora_cwrc_basexdb_init ($connection);
+  drush_print('user:' .  $connection->connection->username);
+
+  $pid = 'cwrc:alltag-w';
+
+  $obj = islandora_object_load($pid);
+
+
+  if (!$obj)
+  {
+    drush_print('Error: failed to load - ['.$pid. ']') ;
+  }
+  else
+  { 
+    drush_print($obj->id);
+  }
 }
 
 
@@ -134,6 +165,7 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     // connection to Tuque/Islandora
     $fedoraConnection = null;
     drush_islandora_cwrc_basexdb_init($fedoraConnection);
+    drush_print('user:' .  $fedoraConnection->connection->username);
 
     // connection to the BaseXDB 
     $basexSession = null;
@@ -288,5 +320,11 @@ function drush_islandora_cwrc_basexdb_init (
 
   // Get the tuque connection.
   $connection = islandora_get_tuque_connection();
+
+  // grab the current user specified as on the command-line via 'drush -u 0'
+  $user = user_load_by_name($GLOBALS['user']->name);
+  $connection = islandora_get_tuque_connection();
+  $connection->connection->username = $user->name;
+  $connection->connection->password = $user->pass;
 }
 
