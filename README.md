@@ -11,11 +11,16 @@ Features:
 
 Install
 --
-= install BaseX v8.2+ as per directions - http://basex.org/products/download/all-downloads/
-= add to the Drupal libraries directory
-== basex-api/BaseXclient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
-= https://www.drupal.org/project/encrypt
-= https://www.drupal.org/project/encryptfapi
+* install BaseX v8.2+ as per directions - http://basex.org/products/download/all-downloads/
+* add to the Drupal libraries directory
+** basex-api/BaseXclient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
+* https://www.drupal.org/project/encrypt
+* https://www.drupal.org/project/encryptfapi
 
 
 = be sure to update firewall rules and username/password for BaseX server 
+
+
+
+Note: don''t use the BaseX client as it disrupts concurrency when the server instance is trying to write - 2 separate JVMs can''t be trying to write. 
+= http://docs.basex.org/wiki/Startup#Concurrent_Operations
