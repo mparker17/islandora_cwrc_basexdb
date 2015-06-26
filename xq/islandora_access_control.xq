@@ -29,7 +29,7 @@ declare variable $cwAccess:role_external external := ( "anonymous" );
 * * return only those object that are accessbible based on the username or role
 * *
 :)
-declare function cwAccess:queryAccessControl($context, $user_external, $role_external)
+declare function cwAccess:queryAccessControl($context)
 {
 let $accessible_sequence := ( $context/obj[RELS-EXT/rdf:RDF/rdf:Description[(not(islandora:isViewableByUser) and not(islandora:isViewableByRole)) or islandora:isViewableByUser/text()=$cwAccess:user_external or islandora:isViewableByRole/text() = $cwAccess:role_external ]] )
 

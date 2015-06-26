@@ -18,7 +18,7 @@ declare option output:indent   "no";
 
 (: the main section: :)
 let $accessible_seq := cwAccessibility:queryAccessControl( / )
-let $ret := $accessible_seq/name()
+let $ret := $accessible_seq/(@pid | @label)
 return
   ($ret)
 
