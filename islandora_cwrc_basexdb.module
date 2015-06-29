@@ -7,12 +7,27 @@
  * = provide an list of APIs for advance queries to the XML database  
  */
 
+
+//access control
+
+//define('ISLANDORA_CWRC_BASEXDB_AC_EDIT', 'Islandora CWRC BASEX Edit');
+define('ISLANDORA_CWRC_BASEXDB_AC_QUERY', 'Islandora CWRC BASEX Query');
+
+
+// endpoints
+define('ISLANDORA_CWRC_BASEXDB_ADMIN', 'admin/islandora/tools/islandora_cwrc_basex');
+define('ISLANDORA_CWRC_BASEXDB_TEST_API', 'islandora/cwrc_xmldb/v1/%');
+
+
 /**
  * Implements hook_menu().
  */
-function islandora_cwrc_basexdb_menu() {
-  return array(
-    'admin/islandora/tools/islandora_cwrc_basex' => array(
+function islandora_cwrc_basexdb_menu() 
+{
+
+  $items = array();
+
+  $items[ISLANDORA_CWRC_BASEXDB_ADMIN] = array(
       'title' => 'XML Database Module',
       'description' => 'Configure the BaseX database module.',
       'page callback' => 'drupal_get_form',
@@ -20,7 +35,31 @@ function islandora_cwrc_basexdb_menu() {
       'page arguments' => array('islandora_cwrc_basexdb_admin_settings_form'),
       'file' => 'includes/admin.form.inc',
       'type' => MENU_NORMAL_ITEM,
-    )
+  );
+ 
+  $items[ISLANDORA_CWRC_BASEXDB_TEST_API] = array(
+      'title' => 'Test XQuery Endpont',
+      'description' => 'Test XQuery Endpoint.',
+      'page callback' => 'islandora_cwrc_basexdb_test_endpoint',
+      'page arguments' => array(3),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/xmldb_endpoints.inc',
+      'access arguments' => array(ISLANDORA_CWRC_BASEXDB_AC_QUERY),
+    );
+      
+  return $items;
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_cwrc_basexdb_permission() {
+  return array(
+    ISLANDORA_CWRC_BASEXDB_AC_QUERY => array(
+      'title' => t('XML Database: Query'),
+      'description' => t('Execute XQuery against a read-only XML database'),
+    ),
   );
 }
 
