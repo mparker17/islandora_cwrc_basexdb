@@ -1,4 +1,4 @@
-name = CWRC XML Database
+name = Islandora CWRC XML Database
 description = Islandora/Fedora connection to an XML Database
 dependencies[] = islandora
 dependencies[] = libraries
