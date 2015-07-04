@@ -16,7 +16,7 @@ function islandora_cwrc_basexdb_drush_command()
   $items['islandora_cwrc_basexdb_init_db'] = array(
     'description' => 'Initialize XML Database',
     'examples' => array(
-      'drush -u 1 islandora_cwrc_basexdb_init'
+      'drush -u 1 islandora_cwrc_basexdb_init_db'
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
@@ -24,7 +24,7 @@ function islandora_cwrc_basexdb_drush_command()
   $items['islandora_cwrc_basexdb_drop_db'] = array(
     'description' => 'Drop XML Database',
     'examples' => array(
-      'drush -u 1 islandora_cwrc_basexdb_drop'
+      'drush -u 1 islandora_cwrc_basexdb_drop_db'
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
@@ -79,21 +79,22 @@ function drush_islandora_cwrc_basexdb_init_db()
     drush_print("Init XML Database");
     
     // Include modules.
-    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
     // connection to the BaseXDB 
-    $basexSession = null;
-    $basexSession = islandora_cwrc_basexdb_init();
+    drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+    $basexObj = new xmldb_basex($xmldb_config,null);
 
     // create new database
-    $basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
-    print $basexSession->info();
+    $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
+    print $basexObj->basexSession->info();
 
-    $basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_cache'));
-    print $basexSession->info();
+    $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_cache'));
+    print $basexObj->basexSession->info();
 
-    print $basexSession->close();
+    print $basexObj->close();
 
   } catch (Exception $e) {
      // print exception
@@ -112,21 +113,22 @@ function drush_islandora_cwrc_basexdb_drop_db()
     drush_print("Drop XML Database");
     
     // Include modules.
-    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
     // connection to the BaseXDB 
-    $basexSession = null;
-    $basexSession = islandora_cwrc_basexdb_init();
+    drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+    $basexObj = new xmldb_basex($xmldb_config,null);
 
     // create new database
-    $basexSession->execute("drop db " . variable_get('islandora_cwrc_basexdb_database_main'));
-    print $basexSession->info();
+    $basexObj->basexSession->execute("drop db " . variable_get('islandora_cwrc_basexdb_database_main'));
+    print $basexObj->basexSession->info();
 
-    $basexSession->execute("drop db " . variable_get('islandora_cwrc_basexdb_database_cache'));
-    print $basexSession->info();
+    $basexObj->basexSession->execute("drop db " . variable_get('islandora_cwrc_basexdb_database_cache'));
+    print $basexObj->basexSession->info();
     
-    print $basexSession->close();
+    print $basexObj->close();
 
   } catch (Exception $e) {
      // print exception
@@ -145,7 +147,8 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     drush_print("Load XML Database content from Islandora/Fedora by last modified date");
     
     // Include modules.
-    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
     // connection to Tuque/Islandora
@@ -154,10 +157,10 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     drush_print('user:' .  $fedoraConnection->connection->username);
 
     // connection to the BaseXDB 
-    $basexSession = null;
-    $basexSession = islandora_cwrc_basexdb_init();
-    $basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
-    drush_print($basexSession->info());
+    drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config); 
+    $basexObj = new xmldb_basex($xmldb_config,null);
+    $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
+    drush_print($basexObj->basexSession->info());
 
     // https://groups.google.com/forum/#!topic/fedora-community/FoKsrCjZzEM
     // https://groups.google.com/forum/#!searchin/islandora/jms/islandora/YVayZCbx-vQ/KRe0X49YYqkJ
@@ -190,8 +193,9 @@ EOQ;
       try {
         $pid = $result['object']['value']; // match SparQL select term
         drush_print($pid);
-        drush_print(islandora_cwrc_basexdb_add_content($pid, $basexSession));
-        drush_print($basexSession->info());
+        $fedora_object = islandora_object_load($pid);
+        drush_print($basexObj->basexdb_add_content($fedora_object));
+        drush_print($basexObj->basexSession->info());
 
       }
       catch (Exception $e)
@@ -202,7 +206,7 @@ EOQ;
       }
     }
 
-    $basexSession->close();
+    $basexObj->close();
 
   } catch (Exception $e) {
      // print exception
@@ -223,7 +227,8 @@ function drush_islandora_cwrc_basexdb_test (
   drush_print("Test XML Database");
 
   // Include modules.
-  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
   include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
   // connection to Tuque/Islandora
@@ -236,8 +241,8 @@ function drush_islandora_cwrc_basexdb_test (
   drush_print('user:' . variable_get('islandora_cwrc_basexdb_username'));
 
   // connection to the BaseXDB 
-  $basexSession = null;
-  $basexSession = islandora_cwrc_basexdb_init();
+  drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+  $basexObj = new xmldb_basex($xmldb_config,null);
 
   // Display the user.
   drush_print("User: " . $connection->connection->username);
@@ -246,38 +251,38 @@ function drush_islandora_cwrc_basexdb_test (
   $errror_file_count = 0;
 
   // create new database
-  $basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
-  print $basexSession->info();
+  $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
+  print $basexObj->basexSession->info();
 
-  drush_print($basexSession->execute("INFO DB"));
+  drush_print($basexObj->basexSession->execute("INFO DB"));
 
 
  // add to the database
-  $basexSession->add('/cwrc', "<z>sadf \n <a> asf </a> asdf</z>");
+  $basexObj->basexSession->add('/cwrc', "<z>sadf \n <a> asf </a> asdf</z>");
 
   // run query on database
-  print $basexSession->execute("xquery /").'\n';
+  print $basexObj->basexSession->execute("xquery /").'\n';
 
   // bind variables 
   $input = 'declare variable $name external; for $i in 1 to 3 return element { $name } { $i }';
   // bind variable
-  $basexQuery = $basexSession->query($input);
+  $basexQuery = $basexObj->basexSession->query($input);
   $basexQuery->bind('$name', 'number');
   drush_print($basexQuery->execute());
-  drush_print($basexSession->info());
+  drush_print($basexObj->basexSession->info());
 
 
   // 'more' and 'next' loop
-  $basexQuery = $basexSession->query($input);
+  $basexQuery = $basexObj->basexSession->query($input);
   $basexQuery->bind('$name', 'number');
   // loop through all results
   while($basexQuery->more()) {
       drush_print($basexQuery->next());
   }
-  drush_print($basexSession->info());
+  drush_print($basexObj->basexSession->info());
 
   $basexQuery->close();
-  $basexSession->close();
+  $basexObj->close();
 
 
 
@@ -315,7 +320,8 @@ function drush_islandora_cwrc_basexdb_test_xq()
 {
 
   // Include modules.
-  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
   include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
   global $user;
@@ -327,12 +333,13 @@ function drush_islandora_cwrc_basexdb_test_xq()
 
 
   // connection to the BaseXDB 
-  $basexSession = null;
-  $basexSession = islandora_cwrc_basexdb_init();
+  drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+  $basexObj = new xmldb_basex($xmldb_config,null);
+
 
   // open XML Database 
-  $basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main')); 
-  drush_print($basexSession->info());
+  $basexObj->basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main')); 
+  drush_print($basexObj->basexSession->info());
 
   //$basexSession->execute("SET BINDINGS {cwAccessibility}user_external=".$connection->connection->username); 
   //drush_print($basexSession->execute("GET BINDINGS"));
@@ -341,7 +348,7 @@ function drush_islandora_cwrc_basexdb_test_xq()
 
   Global $base_url;
   $base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
-  $basexSession->execute('SET QUERYPATH ' . $base_xquery );
+  $basexObj->basexSession->execute('SET QUERYPATH ' . $base_xquery );
 
   // 2015-06-26
   // ToDo: using this syntax as the BaseX server is running on another
@@ -354,15 +361,15 @@ function drush_islandora_cwrc_basexdb_test_xq()
 
   //$basexSession->execute("SET BINDINGS"); 
   //drush_print($basexSession->execute("GET BINDINGS"));
-  $basexQuery = $basexSession->query($xqueryStr);
+  $basexQuery = $basexObj->basexSession->query($xqueryStr);
   // 2015-06-26
   // ToDo: appears bind is overridden given the manner the XQuery is being called 
   $basexQuery->bind('user_external', $user->name);
   $basexQuery->bind('role_external', $user_roles);
   drush_print($basexQuery->execute());
-  drush_print($basexSession->info());
+  drush_print($basexObj->basexSession->info());
 
-  $basexSession->close();
+  $basexObj->close();
 
 
 }
@@ -398,5 +405,24 @@ function drush_islandora_cwrc_basexdb_init (
   $connection = islandora_get_tuque_connection();
   $connection->connection->username = $user->name;
   $connection->connection->password = $user->pass;
+}
+
+
+/**
+ * CWRC migration batch - migration_init
+ *
+ * @param string $connection
+ *   tuque connection object
+ */
+function drush_islandora_cwrc_basexdb_xmldb_config (
+    &$xmldb_config
+  )
+{
+  $xmldb_config = new stdClass;
+  $xmldb_config->basexdb_server_url = variable_get('islandora_cwrc_basexdb_server_url');
+  $xmldb_config->basexdb_server_port = variable_get('islandora_cwrc_basexdb_server_port');
+  $xmldb_config->basexdb_username = variable_get('islandora_cwrc_basexdb_username');
+  $xmldb_config->basexdb_password = islandora_cwrc_basexdb_get_password('islandora_cwrc_basexdb_password');
+
 }
 
