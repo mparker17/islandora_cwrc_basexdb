@@ -36,7 +36,14 @@ function islandora_cwrc_basexdb_drush_command()
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
-
+  
+  $items['islandora_cwrc_basexdb_test_delete'] = array(
+    'description' => 'Test detete within XML Database',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_test_delete'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
 
   $items['islandora_cwrc_basexdb_test'] = array(
     'description' => 'Test connection with XML Database',
@@ -45,6 +52,15 @@ function islandora_cwrc_basexdb_drush_command()
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
+ 
+  $items['islandora_cwrc_basexdb_test_delete'] = array(
+    'description' => 'Test detete within XML Database',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_test_delete'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
+
 
   $items['islandora_cwrc_basexdb_test_xq'] = array(
     'description' => 'Test XQuery',
@@ -314,6 +330,39 @@ function drush_islandora_cwrc_basexdb_test_auth()
   }
 }
 
+
+function drush_islandora_cwrc_basexdb_test_delete()
+{
+
+  // Include modules.
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+
+  global $user;
+  drush_islandora_cwrc_basexdb_init ($connection);
+  drush_print('user:' .  $user->name);
+
+  $user_roles = "('".implode("','", $user->roles)."')";
+  drush_print('roles:' . $user_roles);
+
+
+  // connection to the BaseXDB 
+  drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+  $basexObj = new xmldb_basex($xmldb_config,null);
+
+
+  // open XML Database 
+  $basexObj->basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main')); 
+  drush_print($basexObj->basexSession->info());
+
+  $basexObj->basexdb_delete_content('cwrc:alltag-w');
+  drush_print($basexObj->basexSession->info());
+
+  $basexObj->close();
+
+
+}
 
 
 function drush_islandora_cwrc_basexdb_test_xq()

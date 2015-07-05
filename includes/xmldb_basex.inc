@@ -105,7 +105,7 @@ class xmldb_basex {
       $date->setTimezone(new DateTimeZone('UTC'));
       $str_server_now = $date->format('Y-m-d\TH:i:s\Z');
 
-      return 'Error: failed to load - ['.$pid. '] ' . $str_server_now ;
+      return 'Error: failed to load - ['.'] ' . $str_server_now ;
     }
 
     // enable user error handling
@@ -151,7 +151,7 @@ class xmldb_basex {
     $dom->appendChild($rootNode);
 
     // add to the XML database (or replace if exists)
-    $basexSession->replace("/cwrc/obj[@pid='$fedora_object->id']", $dom->saveXML());
+    $basexSession->replace("/obj[@pid='$fedora_object->id']", $dom->saveXML());
     //print($dom->saveXML());
 
     $ret = null;
@@ -165,6 +165,30 @@ class xmldb_basex {
 
     return ($ret);
   }
+
+
+
+
+  /**
+  * given a PID, delete the entry in the XML database 
+  *
+  * https://github.com/Islandora/islandora/wiki/Working-With-Fedora-Objects-Programmatically-Via-Tuque
+  *
+  * @param string $pid
+  *  the Fedora object PID 
+  *
+  **/
+  function basexdb_delete_content($pid)
+  {
+    //$obj = islandora_object_load($pid);
+    
+    $basexSession = $this->basexSession;
+
+    // add to the XML database (or replace if exists)
+    $basexSession->execute("xquery delete node /obj[@pid='$pid']");
+  }
+
+
 
 }
 
