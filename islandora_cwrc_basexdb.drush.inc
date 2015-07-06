@@ -37,14 +37,6 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
   
-  $items['islandora_cwrc_basexdb_test_delete'] = array(
-    'description' => 'Test detete within XML Database',
-    'examples' => array(
-      'drush -u 1 islandora_cwrc_basexdb_test_delete'
-    ),
-    'bootstrap' => DRUSH_BOOTSTRAP_MAX
-  );
-
   $items['islandora_cwrc_basexdb_test'] = array(
     'description' => 'Test connection with XML Database',
     'examples' => array(
