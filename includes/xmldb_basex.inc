@@ -181,11 +181,20 @@ class xmldb_basex {
   function basexdb_delete_content($pid)
   {
     //$obj = islandora_object_load($pid);
-    
-    $basexSession = $this->basexSession;
 
-    // add to the XML database (or replace if exists)
-    $basexSession->execute("xquery delete node /obj[@pid='$pid']");
+    try { 
+      $basexSession = $this->basexSession;
+      $basexSession->execute("xquery delete node /obj[@pid='$pid']");
+      $ret = TRUE;
+    }
+    catch (Exception $e)
+    {
+      $ret = FALSE;
+    }
+
+    return $ret;
+
+
   }
 
 
