@@ -108,6 +108,16 @@ class xmldb_basex {
       return 'Error: failed to load - ['.'] ' . $str_server_now ;
     }
 
+    // if the Feodra object has a start of 'deleted' or 'inactive'
+    // the delete the object from the XML database
+    if ($fedora_object->state !== 'A')
+    {
+      $this->basexdb_delete_content($fedora_object->id);
+      return 'Info: Object state: $fedora_object->id';
+    }
+
+    // Otherwise add the content to the XML database
+
     // enable user error handling
     libxml_use_internal_errors(true);
 
