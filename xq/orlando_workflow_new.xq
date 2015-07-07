@@ -1,6 +1,6 @@
 (: 
 * 
-* A test template that follows the Islandora/Fedora access control  
+* for a Fedora object, list the workflow information 
 *
 * eg.
 *
@@ -17,7 +17,7 @@ declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
 
-declare variable $FEDORA_PID external := "cwrc:johnp2-w";
+declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 
 

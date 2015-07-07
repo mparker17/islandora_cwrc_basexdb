@@ -56,7 +56,7 @@ function islandora_cwrc_basexdb_test_endpoint ($xquery, $value = NULL) {
 * @return
 *   the response for the XQuery - text/XML
 */ 
-function islandora_cwrc_exec_xquery($xquery, $valArray)
+function islandora_cwrc_exec_xquery($xquery )
 {
 
   // Include modules.
@@ -77,7 +77,7 @@ function islandora_cwrc_exec_xquery($xquery, $valArray)
 
   // map to hold access control elements and other report specifiy variables
   $tmp = "";
-  foreach ($valArray as $key=>$value)
+  foreach ( drupal_get_query_parameters() as $key=>$value)
   {
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
   }
@@ -93,9 +93,10 @@ function islandora_cwrc_exec_xquery($xquery, $valArray)
   // server and the 'RUN' command doesn't understand URIs
   $xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.$xquery.'"), '.$xquery_bindings.')';
 
+  //$ret = $xqueryStr;
   $basexQuery = $basexSession->query($xqueryStr);
-
   $ret = $basexQuery->execute();
+
 
   $basexSession->close();
 

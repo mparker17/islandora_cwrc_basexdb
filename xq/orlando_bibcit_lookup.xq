@@ -19,7 +19,7 @@ declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
 
-declare variable $FEDORA_PID external := "cwrc:johnp2-w";
+declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 
 
@@ -41,7 +41,6 @@ return
       order by $group_by_id
       return
         <div>
-        <dd>{$group_by_id}</dd>
         <ul>
         {
         (: output details of the reference biblography entry :) 
@@ -49,11 +48,11 @@ return
         return
         (
           if ( $bibl/RESPONSIBILITY[@WORKSTATUS="PUB"] and $bibl/RESPONSIBILITY[@WORKVALUE="C"] ) then
-            <c class="pub_c">{data($bibl/@BI_ID)}</c>
+            <em class="pub_c">{data($bibl/@BI_ID)}</em>
           else if ( $bibl/RESPONSIBILITY ) then
-            <e>{data($bibl/@BI_ID)}</e>
+            <span>{data($bibl/@BI_ID)}</span>
           else
-            <d>{$group_by_id} no responsibility</d>
+            <d>{$group_by_id} no responsibility found</d>
           )
         }
         </ul>
@@ -61,6 +60,7 @@ return
           {
           (: output placeholder and tag text of ibbcit or textscope :)
           for $a in $accessible_seq//BIBCIT[@DBREF = $group_by_id]
+          order by $a/@PLACEHOLDER/data()
           return
             <li>DBREF:[{$a/@DBREF/data()}] - QTDIN:[{$a/@QTDIN/data()}] - Placeholder:[{$a/@PLACEHOLDER/data()}] - Text:[{$a/text()}]</li>
           }
