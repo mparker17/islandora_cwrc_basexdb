@@ -396,19 +396,27 @@ function drush_islandora_cwrc_basexdb_test_xq()
   // 2015-06-26
   // ToDo: using this syntax as the BaseX server is running on another
   // server and the 'RUN' command doesn't understand URIs
-  $xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"), '.$xquery_bindings.')';
+  //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"), '.$xquery_bindings.')';
+  $xq_file = 'template.xq';
+  $xq_file = 'orlando_researchnotes_lookup.xq';
+  $xq_file = 'orlando_workflow_new.xq';
+  $xq_file = 'orlando_bibcit_lookup.xq';
+  $xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.$xq_file.'"), '.$xquery_bindings.')';
   //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"))';
+  drush_print($xqueryStr);
 
   //drush_print($basexSession->execute('xquery ' . $xqueryStr));
   //drush_print($basexSession->info());
 
   //$basexSession->execute("SET BINDINGS"); 
   //drush_print($basexSession->execute("GET BINDINGS"));
+
   $basexQuery = $basexObj->basexSession->query($xqueryStr);
+
   // 2015-06-26
   // ToDo: appears bind is overridden given the manner the XQuery is being called 
-  $basexQuery->bind('user_external', $user->name);
-  $basexQuery->bind('role_external', $user_roles);
+  //$basexQuery->bind('user_external', $user->name);
+  //$basexQuery->bind('role_external', $user_roles);
   drush_print($basexQuery->execute());
   drush_print($basexObj->basexSession->info());
 
