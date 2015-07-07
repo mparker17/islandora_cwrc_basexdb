@@ -93,11 +93,9 @@ class xmldb_basex {
   *  the Fedora object as a Tuque object
   *
   **/
-  function basexdb_add_content($fedora_object)
+  function basexdb_add_content($fedora_object, $msgDateTime=null)
   {
     //$obj = islandora_object_load($pid);
-    
-    $basexSession = $this->basexSession;
 
     if (!$fedora_object)
     {
@@ -112,12 +110,47 @@ class xmldb_basex {
     // the delete the object from the XML database
     if ($fedora_object->state !== 'A')
     {
-      $this->basexdb_delete_content($fedora_object->id);
-      return 'Info: Object state: $fedora_object->id';
+      $this->basexdb_do_delete($fedora_object->id);
+      return "Info: Object state: $fedora_object->state";
     }
+    else
+    {
+      // Otherwise add the content to the XML database
+      $basex_time_str = $this->basexdb_last_modified_time($fedora_object->id);
+      $fedora_time_str = $fedora_object->lastModifiedDate;
+      $message_time = (isset($msgDateTime)) ? strtotime($msgDateTime) : null;
+      $basex_time = (isset($basex_time_str)) ? strtotime($basex_time_str) : null;
+      $fedora_time = (isset($fedora_time_str)) ? strtotime($fedora_time_str) : null;
+      print($basex_time_str . " - " . $fedora_time_str);
+      if ( 
+        (!isset($basex_time) && isset($fedora_object)) // new fedora obj 
+        or 
+        (isset($basex_time) && isset($fedora_time) && $basex_time<$fedora_time)
+        // 2015-07-06 - attempt to use the message time to limit number of 
+        // updates if ActiveMQ messages are handles out-of-order given threading
+        //or 
+        //(isset($basex_time) && isset($fedora_time) && isset($message_time) && $basex_time<$message_time))
+      )
+      {
+        return $this->basexdb_do_replace($fedora_object);
+      }
+    }
+  }
 
-    // Otherwise add the content to the XML database
 
+  /**
+  * given a Fedora object , read the object, extract content and 
+  * and datastreams with XML mime/type and add create and entry
+  * in an XML database
+  *
+  * https://github.com/Islandora/islandora/wiki/Working-With-Fedora-Objects-Programmatically-Via-Tuque
+  *
+  * @param string $fedora_object
+  *  the Fedora object as a Tuque object
+  *
+  **/
+  protected function basexdb_do_replace($fedora_object)
+  {
     // enable user error handling
     libxml_use_internal_errors(true);
 
@@ -161,7 +194,7 @@ class xmldb_basex {
     $dom->appendChild($rootNode);
 
     // add to the XML database (or replace if exists)
-    $basexSession->replace("/obj[@pid='$fedora_object->id']", $dom->saveXML());
+    $this->basexSession->replace("/obj[@pid='$fedora_object->id']", $dom->saveXML());
     //print($dom->saveXML());
 
     $ret = null;
@@ -178,6 +211,46 @@ class xmldb_basex {
 
 
 
+  /**
+  * given a PID, delete the entry in the XML database while 
+  *
+  * https://github.com/Islandora/islandora/wiki/Working-With-Fedora-Objects-Programmatically-Via-Tuque
+  *
+  * @param string $pid
+  *  the Fedora object PID 
+  *
+  **/
+  function basexdb_delete_content($pid, $msgDateTime=null)
+  {
+    //$obj = islandora_object_load($pid);
+
+    try { 
+      $basex_time_str = $this->basexdb_last_modified_time($pid);
+      $message_time = (isset($msgDateTime)) ? strtotime($msgDateTime) : null;
+      $basex_time = (isset($basex_time_str)) ? strtotime($basex_time_str) : null;
+      if ( 
+        !isset($msgDateTime) 
+        or 
+        (isset($basex_time) && $basex_time<=$message_time)
+      )
+      {
+        // if MessageDateTime not set then not from ActiveMQ
+        // if the message time ( Fedora Active MQ ) is before the
+        // basex DB version then processing order of queue messages
+        // out of order given multiple process
+        // I.e. object may have been deleted then re-added with same PID
+        // therefor don't delete. 
+        $this->basexdb_do_delete($pid);
+      }
+      $ret = TRUE;
+    }
+    catch (Exception $e)
+    {
+      $ret = FALSE;
+    }
+
+    return $ret;
+  }
 
   /**
   * given a PID, delete the entry in the XML database 
@@ -188,24 +261,27 @@ class xmldb_basex {
   *  the Fedora object PID 
   *
   **/
-  function basexdb_delete_content($pid)
+  protected function basexdb_do_delete($pid)
   {
     //$obj = islandora_object_load($pid);
 
-    try { 
-      $basexSession = $this->basexSession;
-      $basexSession->execute("xquery delete node /obj[@pid='$pid']");
-      $ret = TRUE;
-    }
-    catch (Exception $e)
-    {
-      $ret = FALSE;
-    }
-
-    return $ret;
-
-
+    $this->basexSession->execute("xquery delete node /obj[@pid='$pid']");
   }
+
+
+  /**
+   * given a PID lookup the last modifed time and return
+   *
+   * @param string $pid
+   *   the Fedora object PID
+   *
+   * @return last modified time
+   **/
+  function basexdb_last_modified_time($pid)
+  {
+    return $this->basexSession->execute("xquery /obj[@pid='$pid']/@lastModifiedDate/data()");
+  }
+
 
 
 
