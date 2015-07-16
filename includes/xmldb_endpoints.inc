@@ -104,6 +104,19 @@ function islandora_cwrc_exec_xquery($xquery )
 }
 
 /**
+* Given input parameters, verify the parameter doesn't allow xQuery injection
+*
+* @param str
+*
+* @return string
+*   null if doesn't meet whitelist parameters
+**/
+function islandora_cwrc_basexdb_whitelist_xquery($str) {
+  return null;
+}
+
+
+/**
 * Access callback fo the XML db end-point
 *
 * @return bool
