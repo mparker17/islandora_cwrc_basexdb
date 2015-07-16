@@ -59,7 +59,7 @@ return
         <ul>
           {
           (: output placeholder and tag text of ibbcit or textscope :)
-          for $a in $accessible_seq//BIBCIT[@DBREF = $group_by_id]
+          for $a in $accessible_seq//(TEXTSCOPE|BIBCIT)[@DBREF = $group_by_id]
           order by $a/@PLACEHOLDER/data()
           return
             <li>DBREF:[{$a/@DBREF/data()}] - QTDIN:[{$a/@QTDIN/data()}] - Placeholder:[{$a/@PLACEHOLDER/data()}] - Text:[{$a/text()}]</li>
