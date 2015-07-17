@@ -2,27 +2,32 @@
 
 Objectives:
 --
-=Provide a framework and api for efficiently building analytical tools, reports, and clean-up tools leveraging the XML content and hierarchies with the XML content while adhearing to the XACML policies within Fedora
+*Provide a framework and api for efficiently building analytical tools, reports, and clean-up tools leveraging the XML content and hierarchies with the XML content while adhearing to the XACML policies within Fedora
 
-Increases flexibility during query/analysis operations by indexing Fedora XML content within a read-only XML Database.  This module connects Islandora/Fedora to an XML database to allow advanced XQuery 3.0 with full-text query execution on Fedora XML content to help power advanced queries for analysis purposes. 
+*Increases flexibility during query/analysis operations by indexing Fedora XML content within a read-only XML Database.  This module connects Islandora/Fedora to an XML database to allow advanced XQuery 3.0 with full-text query execution on Fedora XML content to help power advanced queries for analysis purposes. 
 
 Features:
 --
-= connect Islandora/Fedora to an XML Database via microservices for automatic updates
-== Fedora messaging queue based PHP listener (https://github.com/cwrc/php_listeners) triggers creation/update/deletion/purging of content (i.e. 'D' state and purge both remove from the XMLdb).
-= provide a manual mechanism to update the XML Database based on create/modified dates (e.g. in event event queue crashes or automatic updates are not needed or to bootstrap the XML database)
-== drush script to bootstrap and initially populate XMLdb
-= retain XACML access control mechanisms with the XMLdb (modelled after the Solrequivalent - 2015-08-17) 
-== assumption: users are not allowed to write XPath/XQuery as those could circumvent the access control mechanism. XPath/Xquery should be verified before adding to the collection.
-= provide a Drupal API to execute XQueries against the XMLdb respecting the Fedora XACML access conditions on the object (modelled after the Solr integration - 2015-08-17)
-== sample reports https://github.com/cwrc/cwrc_reports_test - 2015-07-17
-= output XML that can be transformed into HTML or raw HTML 
+
+* connect Islandora/Fedora to an XML Database via microservices for automatic updates
+  * Fedora messaging queue based PHP listener (https://github.com/cwrc/php_listeners) triggers creation/update/deletion/purging of content (i.e. 'D' state and purge both remove from the XMLdb).
+  
+* provide a manual mechanism to update the XML Database based on create/modified dates (e.g. in event event queue crashes or automatic updates are not needed or to bootstrap the XML database)
+  * drush script to bootstrap and initially populate XMLdb
+
+* retain XACML access control mechanisms with the XMLdb (modelled after the Solrequivalent - 2015-08-17) 
+  * assumption: users are not allowed to write XPath/XQuery as those could circumvent the access control mechanism. XPath/Xquery should be verified before adding to the collection.
+
+* provide a Drupal API to execute XQueries against the XMLdb respecting the Fedora XACML access conditions on the object (modelled after the Solr integration - 2015-08-17)
+  * sample reports https://github.com/cwrc/cwrc_reports_test - 2015-07-17
+ 
+* output XML that can be transformed into HTML or raw HTML 
 
 Install
 --
 * install BaseX v8.2+ as per directions - http://basex.org/products/download/all-downloads/
 * add to the Drupal libraries directory
-** basex-api/BaseXclient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
+  * basex-api/BaseXclient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
 * https://www.drupal.org/project/encrypt
 * https://www.drupal.org/project/encryptfapi
 
@@ -33,8 +38,8 @@ Install
 
 Notes:
 --
-=: don''t use the BaseX client as it disrupts concurrency when the server instance is trying to write - 2 separate JVMs can''t be trying to write. 
-== http://docs.basex.org/wiki/Startup#Concurrent_Operations
+* don''t use the BaseX client as it disrupts concurrency when the server instance is trying to write - 2 separate JVMs can''t be trying to write. 
+  * http://docs.basex.org/wiki/Startup#Concurrent_Operations
 
 = XMLdb structure
 ```
