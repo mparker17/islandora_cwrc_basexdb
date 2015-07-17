@@ -75,10 +75,14 @@ function islandora_cwrc_exec_xquery($xquery )
   // open XML Database
   $basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main'));
 
+  // whitelist query path
+  $xquery =  islandora_cwrc_basexdb_whitelist_path($xquery);
+
   // map to hold access control elements and other report specifiy variables
   $tmp = "";
   foreach ( drupal_get_query_parameters() as $key=>$value)
   {
+    $value = islandora_cwrc_basexdb_whitelist_xquery($value);
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
   }
   $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles $tmp }";
@@ -109,12 +113,25 @@ function islandora_cwrc_exec_xquery($xquery )
 * @param str
 *
 * @return string
-*   null if doesn't meet whitelist parameters
+*   null if error or empty if doesn't meet whitelist parameters
 **/
 function islandora_cwrc_basexdb_whitelist_xquery($str) {
-  return null;
+  return preg_replace("/[^\w:\-]/", "", $str);;
 }
 
+/**
+* Given input parameters, verify the parameter doesn't 
+*
+* @param str
+*
+* @return string
+*   null if error or empty if doesn't meet whitelist parameters
+**/
+function islandora_cwrc_basexdb_whitelist_path($str)
+{
+  //return preg_replace("/^[./]+/", "", $str);;
+  return basename($str);
+}
 
 /**
 * Access callback fo the XML db end-point
