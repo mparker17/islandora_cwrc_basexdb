@@ -2,9 +2,9 @@
 
 Objectives:
 --
-*Provide a framework and api for efficiently building analytical tools, reports, and clean-up tools leveraging the XML content and hierarchies with the XML content while adhearing to the XACML policies within Fedora
+* Provide a framework and api for efficiently building analytical tools, reports, and clean-up tools leveraging the XML content and hierarchies with the XML content while adhearing to the XACML policies within Fedora
 
-*Increases flexibility during query/analysis operations by indexing Fedora XML content within a read-only XML Database.  This module connects Islandora/Fedora to an XML database to allow advanced XQuery 3.0 with full-text query execution on Fedora XML content to help power advanced queries for analysis purposes. 
+* Increases flexibility during query/analysis operations by indexing Fedora XML content within a read-only XML Database.  This module connects Islandora/Fedora to an XML database to allow advanced XQuery 3.0 with full-text query execution on Fedora XML content to help power advanced queries for analysis purposes. 
 
 Features:
 --
@@ -32,7 +32,7 @@ Install
 * https://www.drupal.org/project/encryptfapi
 
 
-= be sure to update firewall rules and username/password for BaseX server 
+* be sure to update firewall rules and username/password for BaseX server 
 
 
 
