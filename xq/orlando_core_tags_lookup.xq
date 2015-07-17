@@ -34,7 +34,7 @@ return
       <ul>
       {
         (: find the researchnote elements and output  :)
-        for $item in $accessible_seq//(PLACE|NAME|ORGNAME|TITLE|DATE|DATERANGE|DATESTRUCT)[not(parent::RESPONSIBILITY)]
+        for $item in $accessible_seq/CWRC_DS//(PLACE|NAME|ORGNAME|TITLE|DATE|DATERANGE|DATESTRUCT)[not(parent::RESPONSIBILITY)]
         return
           <li>{$item/name()} - text: {fn:string-join($item//text())}
             {

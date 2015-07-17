@@ -34,7 +34,7 @@ return
       <ul>
       {
         (: find the researchnote elements and output  :)
-        for $item in $accessible_seq//QUOTE
+        for $item in $accessible_seq/CWRC_DS//QUOTE
         let $bibcit_sibling := $item/following-sibling::BIBCITS/BIBCIT
         return
           if ( $bibcit_sibling ) then

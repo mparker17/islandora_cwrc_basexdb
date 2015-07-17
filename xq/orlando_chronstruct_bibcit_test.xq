@@ -34,7 +34,7 @@ return
       <ul>
       {
         (: find the researchnote elements and output  :)
-        for $item in $accessible_seq//CHRONSTRUCT
+        for $item in $accessible_seq/CWRC_DS//CHRONSTRUCT
         let $bibcit_descendant := $item/descendant::BIBCIT
         return
           if ( not($bibcit_descendant) ) then

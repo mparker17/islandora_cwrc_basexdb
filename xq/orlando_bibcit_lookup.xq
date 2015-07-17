@@ -37,7 +37,7 @@ return
     <div class="xquery_result_list">
     {
       (: find the bibcit reference and combine duplicates :)
-      for $group_by_id in distinct-values($accessible_seq//(BIBCIT|TEXTSCOPE)/@DBREF/data())
+      for $group_by_id in distinct-values($accessible_seq/CWRC_DS//(BIBCIT|TEXTSCOPE)/@DBREF/data())
       order by $group_by_id
       return
         <div>

@@ -34,7 +34,7 @@ return
       <ul>
       {
         (: find the researchnote elements and output  :)
-        for $item in $accessible_seq//RESEARCHNOTE
+        for $item in $accessible_seq/CWRC_DS//RESEARCHNOTE
         return
           <li>{$item}</li>
       }

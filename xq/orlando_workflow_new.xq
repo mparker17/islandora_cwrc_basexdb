@@ -33,7 +33,7 @@ return
     <div class="xquery_result_list">
       <ul>
       {
-      for $wfItem in $accessible_seq/WORKFLOW/cwrc/workflow
+      for $wfItem in $accessible_seq/WORKFLOW_DS/cwrc/workflow
       return
           <li>
             {data($wfItem/@date)} 
