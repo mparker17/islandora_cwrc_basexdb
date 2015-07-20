@@ -13,6 +13,8 @@ xquery version "3.0" encoding "utf-8";
 
 import module namespace cwAccessibility="cwAccessibility" at "./islandora_access_control.xq";
 
+declare namespace mods = "http://www.loc.gov/mods/v3";
+
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare option output:method "xml";
 declare option output:encoding "UTF-8";
@@ -44,15 +46,19 @@ return
         <ul>
         {
         (: output details of the reference biblography entry :) 
-        let $bibl := cwAccessibility:queryAccessControl(/)[@pid/data()=$group_by_id]
+        let $bibl := cwAccessibility:queryAccessControl(/)[@pid/data()=$group_by_id or MODS_DS/mods:mods/mods:recordInfo/mods:recordIdentifier[@source="Orlando"]/text()=$group_by_id]
+        let $workflow := $bibl/WORKFLOW_DS/cwrc/workflow
         return
         (
-          if ( $bibl/RESPONSIBILITY[@WORKSTATUS="PUB"] and $bibl/RESPONSIBILITY[@WORKVALUE="C"] ) then
-            <em class="pub_c">{data($bibl/@BI_ID)}</em>
-          else if ( $bibl/RESPONSIBILITY ) then
-            <span>{data($bibl/@BI_ID)}</span>
+          (: RESPONSIBILITY[@WORKSTATUS="PUB"] and RESPONSIBILITY[@WORKVALUE="C"]  :)
+          if ( $workflow/activity[@stamp="orl:PUB"] and $workflow/activity[@status="c"] ) then
+            <strong class="pub_c">{$bibl/@label/data()} - id:{$group_by_id}</strong>
+          else if ( $workflow ) then
+            <d class="non_pub_c">No PUB-C - {$bibl/@label/data()} - id:{$group_by_id}</d>
+          else if ( $bibl ) then
+            <d class="warning">{$group_by_id} no responsibility found</d>
           else
-            <d>{$group_by_id} no responsibility found</d>
+            <d class="error">{$group_by_id} - no matching bibligraphy found </d>
           )
         }
         </ul>
