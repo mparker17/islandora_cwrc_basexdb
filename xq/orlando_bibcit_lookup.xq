@@ -22,7 +22,7 @@ declare option output:indent   "no";
 
 
 declare variable $FEDORA_PID external := "";
-declare variable $BASE_URL external := "/islandora/object";
+declare variable $BASE_URL external := "";
 
 (:
 :)

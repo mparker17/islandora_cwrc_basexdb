@@ -75,6 +75,12 @@ function islandora_cwrc_exec_xquery($xquery )
   // open XML Database
   $basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main'));
 
+
+  // base URL from XQuery includd modules
+  Global $base_url;
+  $base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
+  $basexSession->execute('SET QUERYPATH ' . $base_xquery );
+
   // whitelist query path
   $xquery =  islandora_cwrc_basexdb_whitelist_path($xquery);
 
@@ -85,13 +91,8 @@ function islandora_cwrc_exec_xquery($xquery )
     $value = islandora_cwrc_basexdb_whitelist_xquery($value);
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
   }
+  $tmp = $tmp . ", 'BASE_URL' : '".$base_url."/islandora/object'";
   $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles $tmp }";
-
-  // base URL from XQuery includd modules
-  Global $base_url;
-  $base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
-  $basexSession->execute('SET QUERYPATH ' . $base_xquery );
-
   // 2015-06-26
   // ToDo: using this syntax as the BaseX server is running on another
   // server and the 'RUN' command doesn't understand URIs
