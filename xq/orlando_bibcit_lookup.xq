@@ -51,8 +51,10 @@ return
         return
         (
           (: RESPONSIBILITY[@WORKSTATUS="PUB"] and RESPONSIBILITY[@WORKVALUE="C"]  :)
-          if ( $workflow/activity[@stamp="orl:PUB"] and $workflow/activity[@status="c"] ) then
-            <strong class="pub_c">{$bibl/@label/data()} - id:{$group_by_id}</strong>
+          if ( $workflow/activity[@stamp="rl:PUB"] and $workflow/activity[@status="c"] ) then
+            <strong class="pub_c">{$bibl/@label/data()} - id:{$group_by_id} - PUB-C</strong>
+          else if ( $workflow/activity[@stamp="orl:CAS"] and $workflow/activity[@status="c"] ) then
+            <em class="cas_c">{$bibl/@label/data()} - id:{$group_by_id} - CAS-C</em>
           else if ( $workflow ) then
             <d class="non_pub_c">No PUB-C - {$bibl/@label/data()} - id:{$group_by_id}</d>
           else if ( $bibl ) then
