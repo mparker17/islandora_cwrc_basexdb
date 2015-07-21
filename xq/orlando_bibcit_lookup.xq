@@ -22,8 +22,18 @@ declare option output:indent   "no";
 
 
 declare variable $FEDORA_PID external := "";
-declare variable $BASE_URL external := "";
+declare variable $BASE_URL external := "/islandora/object";
 
+(:
+:)
+
+declare function local:bibcitHref($id)
+{
+  <span>
+    <a href="{$BASE_URL}/{$id}" target="">view</a>
+    <a href="{$BASE_URL}/{$id}/workflow" target="">add workflow</a>
+  </span>
+};
 
 
 (: the main section: :)
@@ -51,14 +61,14 @@ return
         return
         (
           (: RESPONSIBILITY[@WORKSTATUS="PUB"] and RESPONSIBILITY[@WORKVALUE="C"]  :)
-          if ( $workflow/activity[@stamp="rl:PUB"] and $workflow/activity[@status="c"] ) then
-            <strong class="pub_c">{$bibl/@label/data()} - id:{$group_by_id} - PUB-C</strong>
+          if ( $workflow/activity[@stamp="orl:PUB"] and $workflow/activity[@status="c"] ) then
+            <strong class="pub_c">{$bibl/@label/data()} - id:{$group_by_id} - PUB-C {local:bibcitHref($bibl/@pid/data())}</strong>
           else if ( $workflow/activity[@stamp="orl:CAS"] and $workflow/activity[@status="c"] ) then
-            <em class="cas_c">{$bibl/@label/data()} - id:{$group_by_id} - CAS-C</em>
+            <em class="cas_c">{$bibl/@label/data()} - id:{$group_by_id} - CAS-C {local:bibcitHref($bibl/@pid/data())}</em>
           else if ( $workflow ) then
-            <d class="non_pub_c">No PUB-C - {$bibl/@label/data()} - id:{$group_by_id}</d>
+            <d class="non_pub_c">No PUB-C - {$bibl/@label/data()} - id:{$group_by_id} {local:bibcitHref($bibl/@pid/data())}</d>
           else if ( $bibl ) then
-            <d class="warning">{$group_by_id} no responsibility found</d>
+            <d class="warning">{$group_by_id} no responsibility found {local:bibcitHref($bibl/@pid/data())}</d>
           else
             <d class="error">{$group_by_id} - no matching bibligraphy found </d>
           )
