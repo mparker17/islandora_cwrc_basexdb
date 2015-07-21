@@ -49,13 +49,16 @@ return
     <div class="xquery_result_list">
     {
       (: find the bibcit reference and combine duplicates :)
-      for $group_by_id in distinct-values($accessible_seq/CWRC_DS//(BIBCIT|TEXTSCOPE)/@DBREF/data())
+      (: ToDo: 2015-07-21 - switch to only @REF when feasible :)
+      (: use @REF or legacy @DBREF for the time being :)
+      for $group_by_id in distinct-values($accessible_seq/CWRC_DS//(BIBCIT|TEXTSCOPE)/(@REF|@DBREF)/data())
       order by $group_by_id
       return
         <div>
         <ul>
         {
         (: output details of the reference biblography entry :) 
+        (: ToDo: 2015-07-21 - switch to only @pid when feasible :)
         let $bibl := cwAccessibility:queryAccessControl(/)[@pid/data()=$group_by_id or MODS_DS/mods:mods/mods:recordInfo/mods:recordIdentifier[@source="Orlando"]/text()=$group_by_id]
         let $workflow := $bibl/WORKFLOW_DS/cwrc/workflow
         return
@@ -66,7 +69,7 @@ return
           else if ( $workflow/activity[@stamp="orl:CAS"] and $workflow/activity[@status="c"] ) then
             <em class="cas_c">{$bibl/@label/data()} - id:{$group_by_id} - CAS-C {local:bibcitHref($bibl/@pid/data())}</em>
           else if ( $workflow ) then
-            <d class="non_pub_c">No PUB-C - {$bibl/@label/data()} - id:{$group_by_id} {local:bibcitHref($bibl/@pid/data())}</d>
+            <d class="non_pub_c">No PUB-C/CAS-C - {$bibl/@label/data()} - id:{$group_by_id} {local:bibcitHref($bibl/@pid/data())}</d>
           else if ( $bibl ) then
             <d class="warning">{$group_by_id} no responsibility found {local:bibcitHref($bibl/@pid/data())}</d>
           else
