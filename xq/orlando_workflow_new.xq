@@ -38,6 +38,7 @@ return
           <li>
             {data($wfItem/@date)} 
             - {data($wfItem/@time)}
+            - {data($wfItem/@userID)}
             - {data($wfItem/activity/@category)}
             - {data($wfItem/activity/@stamp)}
             - {data($wfItem/activity/@status)}
