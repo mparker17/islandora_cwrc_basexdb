@@ -30,8 +30,9 @@ declare variable $BASE_URL external := "";
 declare function local:bibcitHref($id)
 {
   <span>
-    <a href="{$BASE_URL}/{$id}" target="">view</a>
-    <a href="{$BASE_URL}/{$id}/workflow" target="">add workflow</a>
+    <a href="{$BASE_URL}/{$id}" target="_blank">view</a>
+    <a href="{$BASE_URL}/{$id}/datastream/MODS/edit" target="_blank">edit</a>
+    <a href="{$BASE_URL}/{$id}/workflow" target="_blank">add workflow</a>
   </span>
 };
 
