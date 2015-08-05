@@ -20,6 +20,15 @@ declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 
 
+declare function local:entityHref($id)
+{
+  <span>
+    <a href="{$BASE_URL}/{$id}" target="_blank">view</a>
+    <a href="{$BASE_URL}/{$id}/datastream/MODS/edit" target="_blank">edit</a>
+    <a href="{$BASE_URL}/{$id}/workflow" target="_blank">add workflow</a>
+  </span>
+};
+
 (: convert to Orlando standard name :)
 
 declare function local:convertStandardName($str)
@@ -62,7 +71,7 @@ return
                     if (not($target)) then
                       <d class="error"> - {$standard_name} - no matching entity item found </d>
                     else
-                      ()
+                      local:entityHref($item/@pid/data())
               else
                 ()
             }
