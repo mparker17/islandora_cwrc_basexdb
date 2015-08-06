@@ -64,8 +64,10 @@ return
                 let $standard_name :=
                   if ($item/@STANDARD) then
                     $item/@STANDARD/data()
-                  else
+                  else if ($item/name() = 'NAME') then
                     local:convertStandardName($str)
+                  else
+                    $str
                 return
                   (: query standard name :)
                   let $target := cwAccessibility:queryAccessControl(/)[@pid/data()=$item/@REF/data() or (PERSON_DS | ORGANIZATION_DS)/entity/person/identity/variantForms/variant[variantType/text()='orlandoStandardName']/namePart/text() = $standard_name]
