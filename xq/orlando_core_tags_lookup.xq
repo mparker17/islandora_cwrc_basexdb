@@ -70,7 +70,7 @@ return
                     $str
                 return
                   (: query standard name :)
-                  let $target := cwAccessibility:queryAccessControl(/)[@pid/data()=$item/@REF/data() or (PERSON_DS | ORGANIZATION_DS)/entity/person/identity/variantForms/variant[variantType/text()='orlandoStandardName']/namePart/text() = $standard_name]
+                  let $target := cwAccessibility:queryAccessControl(/)[@pid/data()=$item/@REF/data() or (PERSON_DS | ORGANIZATION_DS)/entity/(person | organization)/identity/variantForms/variant[variantType/text()='orlandoStandardName']/namePart/text() = $standard_name]
                   return
                     if (not($target)) then
                       <d class="error"> - {$standard_name} - no matching entity item found </d>
