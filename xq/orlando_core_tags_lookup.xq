@@ -34,7 +34,9 @@ declare function local:entityHref($id)
 declare function local:convertStandardName($str)
 {
   if (contains($str, ' ')) then
-    fn:concat(substring-after($str,' '), ', ', substring-before($str,' '))
+    let $tok := tokenize($str, ' ')
+    return (: handle multiple space e.g. Ernest Thompson Seton :)
+      fn:concat($tok[last()], ', ', fn:string-join($tok[position()!=last()], ' '))
   else
     $str
 };
