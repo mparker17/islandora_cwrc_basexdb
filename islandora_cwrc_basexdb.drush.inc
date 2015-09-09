@@ -401,6 +401,7 @@ function drush_islandora_cwrc_basexdb_test_xq()
   $xq_file = 'orlando_researchnotes_lookup.xq';
   $xq_file = 'orlando_workflow_new.xq';
   $xq_file = 'orlando_bibcit_lookup.xq';
+  $xq_file = '/xml_tag_search_facets.xq';
   $xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.$xq_file.'"), '.$xquery_bindings.')';
   //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"))';
   drush_print($xqueryStr);
