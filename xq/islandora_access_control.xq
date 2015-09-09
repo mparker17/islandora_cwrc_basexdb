@@ -12,6 +12,7 @@ xquery version "3.0" encoding "utf-8";
 
 module namespace cwAccess = "cwAccessibility";
 
+declare namespace cwrc = "http://cwrc.ca";
 declare namespace mods = "http://www.loc.gov/mods/v3";
 declare namespace tei =  "http://www.tei-c.org/ns/1.0";
 declare namespace dc =  "http://purl.org/dc/elements/1.1/";

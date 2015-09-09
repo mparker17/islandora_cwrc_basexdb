@@ -19,10 +19,9 @@ xquery version "3.0" encoding "utf-8";
 
 import module namespace cwAccessibility="cwAccessibility" at "./islandora_access_control.xq";
 
-declare namespace mods = "http://www.loc.gov/mods/v3";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare option output:method "json";
+declare option output:method "raw";
 declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
@@ -31,7 +30,7 @@ declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
 declare variable $QRY_ELEMENTS external := ""; (: e.g. P | DIV :)
-declare variable $QRY_TERMS external := "'Saturday', 'Night'"; (: e.g. "Saturday", "Night" :)
+declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 
 (:
@@ -49,17 +48,17 @@ declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
   (: do not return all ancestors - avoid the "obj" element :)
-      for $elm in $obj//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
-        let $bin :=
-          if ($config_map and map:contains($config_map, $elm)) then
-            (: put value in bin defined by the $config_map :)
-            map:get($config_map, $elm)
-          else
-            (: put value in bin defined by the element name:)
-            $elm
-        group by $bin
-        return
-          $bin
+  for $elm in $obj//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
+    let $bin :=
+      if ($config_map and map:contains($config_map, $elm)) then
+        (: put value in bin defined by the $config_map :)
+        map:get($config_map, $elm)
+      else
+        (: put value in bin defined by the element name:)
+        $elm
+    group by $bin
+    return
+      $bin
 };
 
 (: the main section: :)
@@ -71,22 +70,48 @@ let $qry_elements_str :=
   else 
     ""
 
+let $elm_qry := "(node(mods:namePart) | node(TITLE))//"
 (: query needs to be equivalent to the xml_tag_search.xq equivalent :)
-let $qry := ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+let $qry := ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
 (: for each object :)
 let $bin_seq :=
   for $obj in $qry
   return
     local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
+(:
+    $obj/@pid
+:)
 
 (: 
 * given a sequence of sequences use group by to elimiate duplicates and count
 * instances
  :)
-for $bin in ($bin_seq) 
-  let $tmp := $bin 
-  group by $tmp
-  return element { $tmp } { count($bin) }
+
+
+(: 
+  * ToDo: prevent addition of the last ',' group by does 
+  * weird things if use $bin[position()=1] as the first
+  * may not be in the first position after the grouping
+  * Could wrap with
+  * fn:string-join(for..., ",")
+:)
+
+return
+  (
+  '{'
+  ,
+  for $bin at $posn in ($bin_seq) 
+    let $tmp := $bin 
+    group by $tmp
+    (: 
+      return element { "x" } { $tmp }
+      return element { $tmp } { count($bin) } 
+    :)
+    return
+      ('"' || $tmp || '" : "' || count($bin) || '",')
+  ,
+  '}'
+  )
 
 
 
