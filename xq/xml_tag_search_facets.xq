@@ -29,7 +29,8 @@ declare option output:indent   "no";
 declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
-declare variable $QRY_ELEMENTS external := ""; (: e.g. P | DIV :)
+declare variable $FACET_ELEMENTS external := ('P','DIV0'); (: e.g. P | DIV :)
+declare variable $QRY_ELEMENTS external := (); (: e.g. P | DIV :)
 declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 
@@ -71,15 +72,39 @@ let $qry_elements_str :=
     ""
 
 let $elm_qry := "(node(mods:namePart) | node(TITLE))//"
+let $z := ('STANDARD', 'TITLE')
+
 (: query needs to be equivalent to the xml_tag_search.xq equivalent :)
-let $qry := ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+(: not sure how to write in a better way without the repetition :)
+(: * note: mark are added based on the context not on the XPath within
+the predicate
+ 
+ xquery ft:mark((obj[.//STANDARD//text() contains text {'Pauline'} all words using stemming using diacritics insensitive window 6 sentences]) )//mark[ancestor::STANDARD]/ancestor::*/fn:node-name()
+:)
+(: 
+* facet_elements are added via the facets selected at the current state 
+* query_elements are elements defined outside of the current facet selection
+*   these with be ancestors of the current hits may overlap with facet_elements
+*   :)
+let $qry :=
+  if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($QRY_ELEMENTS)=false and empty($FACET_ELEMENTS) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS)=false ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+
+
 (: for each object :)
 let $bin_seq :=
   for $obj in $qry
   return
-    local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
+    $obj//*[name()=$MARK_NAME]/../name()
 (:
     $obj/@pid
+    local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 :)
 
 (: 
