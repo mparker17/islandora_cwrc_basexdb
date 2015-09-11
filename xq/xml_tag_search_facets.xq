@@ -51,7 +51,7 @@ declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
   (: do not return all ancestors - avoid the "obj" element :)
-  for $elm in $obj//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
+  for $elm in $obj//*[name()=$QRY_ELEMENTS or empty($QRY_ELEMENTS)]//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
     let $bin :=
       if ($config_map and map:contains($config_map, $elm)) then
         (: put value in bin defined by the $config_map :)
