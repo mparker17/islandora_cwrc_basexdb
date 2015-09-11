@@ -45,11 +45,13 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 * once.
 :)
 
+(: xxxxxxxxxxxxx add in the limit for context :)
+(: xxxxxxxxxxxxx prevent going farther down the tree than the passed in elements when determine facets :)
 declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
   (: do not return all ancestors - avoid the "obj" element :)
-  for $elm in $obj//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
+  for $elm in $obj//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
     let $bin :=
       if ($config_map and map:contains($config_map, $elm)) then
         (: put value in bin defined by the $config_map :)
@@ -101,10 +103,10 @@ let $qry :=
 let $bin_seq :=
   for $obj in $qry
   return
-    $obj//*[name()=$MARK_NAME]/../name()
-(:
-    $obj/@pid
     local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
+(:
+    $obj//*[name()=$MARK_NAME]/../name()
+    $obj/@pid
 :)
 
 (: 
