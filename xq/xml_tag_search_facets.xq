@@ -28,7 +28,7 @@ declare option output:indent   "no";
 (: parameters passed into the query :)
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
-declare variable $FACET_ELEMENTS external := ('P','DIV0'); (: e.g. P | DIV :)
+declare variable $FACET_ELEMENTS external := (); (: e.g. ('P','DIV0') :)
 declare variable $QRY_ELEMENTS external := (); (: e.g. P | DIV :)
 declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
