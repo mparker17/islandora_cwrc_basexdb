@@ -21,38 +21,46 @@ declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
 
-declare variable $FEDORA_PID external := "";
+(: parameters passed into the query :)
 declare variable $BASE_URL external := "";
-declare variable $QRY_ELEMENTS external := ""; (: e.g. P | DIV :)
-declare variable $QRY_TERMS external := ""; (: e.g. "Saturday", "Night" :)
-declare variable $MARK_NAME external := "zzMARKzz"; (: element to mark hit :)
+declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
+declare variable $FACET_ELEMENTS external := (); (: e.g. P | DIV :)
+declare variable $QRY_ELEMENTS external := (); (: e.g. P | DIV :)
+declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 
 
 (: define how to extract a snippet given the varity of schemas :)
 declare function local:getSnippets($i)
 {
-  for $hit in $i//$MARK_NAME
+  for $hit in $i//*[name()=$QRY_ELEMENTS or empty($QRY_ELEMENTS)]//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]
   return
     <hit>
     {
-    if ($hit/anscestor::P) then
-      return 
-        $hit/anscestor::P
+    if ($hit/ancestor::P) then
+        $hit/ancestor::P
     else
-      return 
-        $hit/anscestor::obj
+        $hit/ancestor::*[parent::*/parent::obj]
     }
     </hit> 
 };
 
 (: the main section: :)
 let $qry_terms_str := $QRY_TERMS
-let $qry_elements_str := 
-  if ($QRY_ELEMENTS!="") then 
-    concat("(",$QRY_ELEMENTS,")") 
-  else 
-    ""
-let $qry := ft:mark(cwAccessibility:queryAccessControl(/)[[./$qry_elements_str/text() contains text {$qry_terms_str} using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+
+
+(: query needs to be equivalent to the xml_tag_search_facet.xq equivalent :)
+let $qry :=
+  if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($QRY_ELEMENTS)=false and empty($FACET_ELEMENTS) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS)=false ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+
+
+
 for $i score $score in $qry
 return
 <result_item pid="{$i/@pid/data()}">

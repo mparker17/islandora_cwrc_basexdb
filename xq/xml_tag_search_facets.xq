@@ -21,12 +21,11 @@ import module namespace cwAccessibility="cwAccessibility" at "./islandora_access
 
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-declare option output:method "raw";
+declare option output:method "json";
 declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
-
-declare variable $FEDORA_PID external := "";
+(: parameters passed into the query :)
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
 declare variable $FACET_ELEMENTS external := ('P','DIV0'); (: e.g. P | DIV :)
@@ -47,7 +46,9 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 
 (: add in the limit for context - $FACET_ELEMENTS :)
 (: ToDo: prevent going farther down the tree than the passed in elements when determine facets :)
-(: do not return all ancestors - avoid the "obj" element - ancestor::*[not(last()-position()<2) :)
+(: do not return all ancestors - avoid the "obj" element - ancestor::*[not(last()-position()<2) 
+:)
+
 declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
@@ -68,7 +69,6 @@ declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 
 let $qry_terms_str := $QRY_TERMS
 
-(: query needs to be equivalent to the xml_tag_search.xq equivalent :)
 (: not sure how to write in a better way without the repetition :)
 (: * note: mark are added based on the context not on the XPath within
 the predicate
@@ -82,6 +82,7 @@ the predicate
 :)
 
 
+(: query needs to be equivalent to the xml_tag_search.xq equivalent :)
 let $qry :=
   if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
