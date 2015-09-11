@@ -36,8 +36,16 @@ declare function local:getSnippets($i)
   return
     <hit>
     {
-    if ($hit/ancestor::P) then
-        $hit/ancestor::P
+    if ($hit/(ancestor::P|ancestor::FILEDESC)) then
+        $hit/(ancestor::P|ancestor::FILEDESC)
+    else if ($hit/(ancestor::HEADING|ancestor::STANDARD|ancestor::AUTHORSUMMARY)) then
+        $hit/(ancestor::HEADING|ancestor::STANDARD|ancestor::AUTHORSUMMARY)
+    else if ($hit/(ancestor::DIV2)) then
+        $hit/(ancestor::DIV2)
+    else if ($hit/(ancestor::DIV1|ancestor::WORKSCITED)) then
+        $hit/(ancestor::DIV1|ancestor::WORKSCITED)
+    else if ($hit/(ancestor::RESEARCHNOTE)) then
+        $hit/(ancestor::RESEARCHNOTE)
     else
         $hit/ancestor::*[parent::*/parent::obj]
     }
