@@ -45,12 +45,12 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 * once.
 :)
 
-(: xxxxxxxxxxxxx add in the limit for context :)
-(: xxxxxxxxxxxxx prevent going farther down the tree than the passed in elements when determine facets :)
+(: add in the limit for context - $FACET_ELEMENTS :)
+(: ToDo: prevent going farther down the tree than the passed in elements when determine facets :)
+(: do not return all ancestors - avoid the "obj" element - ancestor::*[not(last()-position()<2) :)
 declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
-  (: do not return all ancestors - avoid the "obj" element :)
   for $elm in $obj//*[name()=$QRY_ELEMENTS or empty($QRY_ELEMENTS)]//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
     let $bin :=
       if ($config_map and map:contains($config_map, $elm)) then
@@ -67,14 +67,6 @@ declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 (: the main section: :)
 
 let $qry_terms_str := $QRY_TERMS
-let $qry_elements_str := 
-  if ($QRY_ELEMENTS!="") then 
-    concat("(",$QRY_ELEMENTS,")") 
-  else 
-    ""
-
-let $elm_qry := "(node(mods:namePart) | node(TITLE))//"
-let $z := ('STANDARD', 'TITLE')
 
 (: query needs to be equivalent to the xml_tag_search.xq equivalent :)
 (: not sure how to write in a better way without the repetition :)
@@ -87,7 +79,9 @@ the predicate
 * facet_elements are added via the facets selected at the current state 
 * query_elements are elements defined outside of the current facet selection
 *   these with be ancestors of the current hits may overlap with facet_elements
-*   :)
+:)
+
+
 let $qry :=
   if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
@@ -113,8 +107,6 @@ let $bin_seq :=
 * given a sequence of sequences use group by to elimiate duplicates and count
 * instances
  :)
-
-
 (: 
   * ToDo: prevent addition of the last ',' group by does 
   * weird things if use $bin[position()=1] as the first
