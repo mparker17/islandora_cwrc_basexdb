@@ -28,7 +28,7 @@ declare option output:indent   "no";
 (: parameters passed into the query :)
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
-declare variable $FACET_ELEMENTS external := (); (: e.g. ('P','DIV0') :)
+declare variable $QRY_FACETS external := (); (: e.g. ('P','DIV0') :)
 declare variable $QRY_ELEMENTS external := (); (: e.g. P | DIV :)
 declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
@@ -44,7 +44,7 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 * once.
 :)
 
-(: add in the limit for context - $FACET_ELEMENTS :)
+(: add in the limit for context - $QRY_FACETS :)
 (: ToDo: prevent going farther down the tree than the passed in elements when determine facets :)
 (: do not return all ancestors - avoid the "obj" element - ancestor::*[not(last()-position()<2) 
 :)
@@ -52,7 +52,7 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
 {
   
-  for $elm in $obj//*[name()=$QRY_ELEMENTS or empty($QRY_ELEMENTS)]//*[name()=$FACET_ELEMENTS or empty($FACET_ELEMENTS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
+  for $elm in $obj//*[name()=$QRY_ELEMENTS or empty($QRY_ELEMENTS)]//*[name()=$QRY_FACETS or empty($QRY_FACETS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
     let $bin :=
       if ($config_map and map:contains($config_map, $elm)) then
         (: put value in bin defined by the $config_map :)
@@ -84,14 +84,14 @@ the predicate
 
 (: query needs to be equivalent to the xml_tag_search.xq equivalent :)
 let $qry :=
-  if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS) ) then
+  if ( empty($QRY_ELEMENTS) and empty($QRY_FACETS) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( empty($QRY_ELEMENTS)=false and empty($FACET_ELEMENTS) ) then
+  else if ( empty($QRY_ELEMENTS)=false and empty($QRY_FACETS) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( empty($QRY_ELEMENTS) and empty($FACET_ELEMENTS)=false ) then
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($QRY_ELEMENTS) and empty($QRY_FACETS)=false ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$QRY_FACETS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
   else
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$FACET_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_FACETS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
 
 
 (: for each object :)
@@ -120,15 +120,18 @@ return
   (
   '{'
   ,
-  for $bin at $posn in ($bin_seq) 
-    let $tmp := $bin 
-    group by $tmp
-    (: 
-      return element { "x" } { $tmp }
-      return element { $tmp } { count($bin) } 
-    :)
-    return
-      ('"' || $tmp || '" : "' || count($bin) || '",')
+  let $retSeq := 
+    for $bin at $posn in ($bin_seq) 
+      let $tmp := $bin 
+      group by $tmp
+      (: 
+        return element { "x" } { $tmp }
+        return element { $tmp } { count($bin) } 
+      :)
+      return
+        ('"' || $tmp || '" : "' || count($bin) || '"')
+  return
+    fn:string-join($retSeq, ',')
   ,
   '}'
   )
