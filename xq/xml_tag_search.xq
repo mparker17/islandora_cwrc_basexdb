@@ -24,15 +24,20 @@ declare option output:indent   "no";
 (: parameters passed into the query :)
 declare variable $BASE_URL external := "";
 declare variable $MARK_NAME := "zzzMARKzzz"; (: search hit marker :)
-declare variable $QRY_FACETS as item()* external := ('WRITING'); (: e.g. ('P','DIV0') :)
-declare variable $QRY_ELEMENTS as item()* external := (); (: e.g. ('P','DIV0') :)
+declare variable $QRY_FACETS as xs:string* external := (); (: e.g. ('P','DIV0') :)
+declare variable $QRY_ELEMENTS as xs:string* external := (); (: e.g. ('P','DIV0') :)
 declare variable $QRY_TERMS external := "{'Pauline', 'Pauline'}"; (: e.g. "Saturday", "Night" :)
 
 
-(: define how to extract a snippet given the varity of schemas :)
-declare function local:getSnippets($i,$qry_facets_seq)
+(: 
+  * define how to extract a snippet given the varity of schemas 
+  * $i = node
+  * $qry_facets_seq sequence of element names to restrict results 
+  * $qry_elements_seq sequence of element names to restrict results
+:)
+declare function local:getSnippets($i,$qry_facets_seq, $qry_elements_seq)
 {
-  for $hit in $i//*[name()=$QRY_ELEMENTS or not($QRY_ELEMENTS)]//*[name()=$qry_facets_seq or empty($qry_facets_seq)]//*[name()=$MARK_NAME]
+  for $hit in $i//*[name()=$qry_elements_seq or not($qry_elements_seq)]//*[name()=$qry_facets_seq or empty($qry_facets_seq)]//*[name()=$MARK_NAME]
   return
     <hit>
     {
@@ -66,29 +71,30 @@ let $qry_terms_str := $QRY_TERMS
   *   http://www.xqueryfunctions.com/xq/fn_tokenize.html
  :)
 let $qry_facets_seq as item()* := fn:tokenize($QRY_FACETS,',')
+let $qry_elements_seq as item()* := fn:tokenize($QRY_ELEMENTS,',')
 
 
 
 let $typeQry :=
-  if ( not($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
+  if ( empty($qry_elements_seq) and empty($qry_facets_seq) ) then
 "no element and no facet"
-  else if ( ($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
+  else if ( ($qry_elements_seq) and empty($qry_facets_seq) ) then
 "element and no facet"
-  else if ( not($QRY_ELEMENTS) and not(empty($qry_facets_seq)) ) then
+  else if ( empty($qry_elements_seq) and not(empty($qry_facets_seq)) ) then
 "no element and facet"
   else
 "element and facet"
 
 (: query needs to be equivalent to the xml_tag_search_facet.xq equivalent :)
 let $qry :=
-  if ( not($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
+  if ( empty($qry_elements_seq) and empty($qry_facets_seq) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( ($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( not($QRY_ELEMENTS) and not(empty($qry_facets_seq)) ) then
+  else if ( not(empty($qry_elements_seq)) and empty($qry_facets_seq) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$qry_elements_seq]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( empty($qry_elements_seq) and not(empty($qry_facets_seq)) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$qry_facets_seq ]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
   else
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$qry_facets_seq ]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$qry_elements_seq]//*[name()=$qry_facets_seq ]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
 
 return
   <results>
@@ -98,13 +104,14 @@ return
       <qry_facets>{$QRY_FACETS}</qry_facets>
       <qry_facets_seq>{$qry_facets_seq}</qry_facets_seq>
       <qry_elements>{$QRY_ELEMENTS}</qry_elements>
+      <qry_elements_seq>{$qry_elements_seq}</qry_elements_seq>
     </query>
     {
       for $i score $score in $qry
       return
       <result_item pid="{$i/@pid/data()}">
         <score>{$score}</score>
-        <hits>{local:getSnippets($i,$qry_facets_seq)}</hits>
+        <hits>{local:getSnippets($i,$qry_facets_seq, $qry_elements_seq)}</hits>
       </result_item>
     }
   </results>
