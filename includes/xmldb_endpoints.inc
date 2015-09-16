@@ -101,7 +101,7 @@ function islandora_cwrc_exec_xquery($xquery )
   $tmp = $tmp . ", 'BASE_URL' : '".$base_url."/islandora/object'";
   $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles $tmp }";
 
-  watchdog("xmldb",$xquery_bindings);
+  //watchdog("xmldb",$xquery_bindings);
 
   // 2015-06-26
   // ToDo: using this syntax as the BaseX server is running on another
