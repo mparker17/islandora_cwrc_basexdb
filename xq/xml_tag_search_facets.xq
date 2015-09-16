@@ -49,10 +49,9 @@ declare variable $config_map external := ""; (: e.g. "Saturday", "Night" :)
 (: do not return all ancestors - avoid the "obj" element - ancestor::*[not(last()-position()<2) 
 :)
 
-declare function local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
+declare function local:getDocBinsAsSequence($obj, $config_map, $qry_facets_seq, $MARK_NAME)
 {
-  
-  for $elm in $obj//*[name()=$QRY_ELEMENTS or not($QRY_ELEMENTS)]//*[name()=$QRY_FACETS or not($QRY_FACETS)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
+  for $elm in $obj//*[name()=$QRY_ELEMENTS or not($QRY_ELEMENTS)]//*[name()=$qry_facets_seq or empty($qry_facets_seq)]//*[name()=$MARK_NAME]/ancestor::*[not(last()-position()<2)]/node-name()
     let $bin :=
       if ($config_map and map:contains($config_map, $elm)) then
         (: put value in bin defined by the $config_map :)
@@ -81,24 +80,40 @@ the predicate
 *   these with be ancestors of the current hits may overlap with facet_elements
 :)
 
+(: the main section: :)
+let $qry_terms_str := $QRY_TERMS
+(:
+  * assume input in the form ELEMENT,ELEMENT e.g. WRITING,STANDARD
+  * passing in "('WRITING')" within the map data struct left the type
+  * as a string as opposed to a sequence e.g. xs:string()* See the difference
+  * in the two following methods
+  *   let $qry_facets_seq as item()* := "('WRITING')"
+  *   let $qry_facets_seq as item()* := ('WRITING')
+  * a more advanced method
+  *   http://www.oxygenxml.com/archives/xsl-list/200702/msg00629.html
+  *   http://www.xqueryfunctions.com/xq/fn_tokenize.html
+ :)
+let $qry_facets_seq as item()* := fn:tokenize($QRY_FACETS,',')
+
+
 
 (: query needs to be equivalent to the xml_tag_search.xq equivalent :)
 let $qry :=
-  if ( not($QRY_ELEMENTS) and not($QRY_FACETS) ) then
+  if ( not($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( ($QRY_ELEMENTS) and not($QRY_FACETS) ) then
+  else if ( ($QRY_ELEMENTS) and empty($qry_facets_seq) ) then
     ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
-  else if ( not($QRY_ELEMENTS) and ($QRY_FACETS) ) then
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$QRY_FACETS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+  else if ( not($QRY_ELEMENTS) and not(empty($qry_facets_seq)) ) then
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$qry_facets_seq]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
   else
-    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_FACETS]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
+    ft:mark(cwAccessibility:queryAccessControl(/)[.//*[name()=$QRY_ELEMENTS]//*[name()=$qry_facets_seq]//text() contains text {$qry_terms_str} all words using stemming using diacritics insensitive window 6 sentences], $MARK_NAME)
 
 
 (: for each object :)
 let $bin_seq :=
   for $obj in $qry
   return
-    local:getDocBinsAsSequence($obj, $config_map, $MARK_NAME)
+    local:getDocBinsAsSequence($obj, $config_map, $qry_facets_seq, $MARK_NAME)
 (:
     $obj//*[name()=$MARK_NAME]/../name()
     $obj/@pid
