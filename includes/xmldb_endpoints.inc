@@ -86,13 +86,23 @@ function islandora_cwrc_exec_xquery($xquery )
 
   // map to hold access control elements and other report specifiy variables
   $tmp = "";
+  // ToDo: need to excape single quotes
+  //$tmp = $tmp . ", 'QRY_TERMS' : '{&#34;Pauline&#34;}'";
   foreach ( drupal_get_query_parameters() as $key=>$value)
+  {
+    $value = islandora_cwrc_basexdb_whitelist_xquery($value);
+    $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
+  }
+  foreach ( drupal_get_query_parameters($_POST) as $key=>$value)
   {
     $value = islandora_cwrc_basexdb_whitelist_xquery($value);
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
   }
   $tmp = $tmp . ", 'BASE_URL' : '".$base_url."/islandora/object'";
   $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles $tmp }";
+
+  watchdog("xmldb",$xquery_bindings);
+
   // 2015-06-26
   // ToDo: using this syntax as the BaseX server is running on another
   // server and the 'RUN' command doesn't understand URIs
@@ -117,7 +127,8 @@ function islandora_cwrc_exec_xquery($xquery )
 *   null if error or empty if doesn't meet whitelist parameters
 **/
 function islandora_cwrc_basexdb_whitelist_xquery($str) {
-  return preg_replace("/[^\w:\-]/", "", $str);;
+  //return preg_replace("/[^\w:\-]/", "", $str);;
+  return $str;
 }
 
 /**
