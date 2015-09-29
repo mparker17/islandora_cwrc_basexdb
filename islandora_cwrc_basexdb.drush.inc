@@ -29,6 +29,14 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
 
+  $items['islandora_cwrc_basexdb_load_multiprocess'] = array(
+    'description' => 'Load XML Database',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_load_multiprocess'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
+
   $items['islandora_cwrc_basexdb_load_by_last_modified'] = array(
     'description' => 'Load XML Database',
     'examples' => array(
@@ -143,6 +151,252 @@ function drush_islandora_cwrc_basexdb_drop_db()
      print $e->getMessage();
   } 
 }
+
+
+/**
+ * get array of Fedora PIDs to act upon
+ **/
+function drush_islandora_cwrc_basexdb_get_PID_array()
+{
+    // connection to Tuque/Islandora
+    $fedoraConnection = null;
+    drush_islandora_cwrc_basexdb_init($fedoraConnection);
+    drush_print('user:' .  $fedoraConnection->connection->username);
+
+    // https://groups.google.com/forum/#!topic/fedora-community/FoKsrCjZzEM
+    // https://groups.google.com/forum/#!searchin/islandora/jms/islandora/YVayZCbx-vQ/KRe0X49YYqkJ
+    //https://groups.google.com/forum/#!searchin/islandora/mulgara$3Aafter/islandora/ecV7PwQywRM/EFMT4mGIcQUJ
+
+    //$startDate = "2015-06-17T15:29:21.374Z";
+    /*
+    $startDate = "2005-06-17T15:29:21.374Z";
+    $startDate = "2015-07-29T15:29:21.374Z";
+
+    $query = <<<EOQ
+    SELECT ?object
+    FROM <#ri>
+    WHERE {
+      ?object <fedora-view:lastModifiedDate> ?modified ;
+      <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0>;
+      FILTER ( 
+        ?modified > '$startDate'^^<xml-schema:dateTime>
+      )
+    }
+EOQ;
+     */
+
+
+    $query = <<<EOQ
+    SELECT ?object
+    FROM <#ri>
+    WHERE {
+      ?object <fedora-view:lastModifiedDate> ?modified ;
+      <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0>;
+    }
+EOQ;
+
+    drush_print($query);
+
+    $results = $fedoraConnection->repository->ri->sparqlQuery($query);
+
+    $fedoraConnection->connection->__destruct();
+    $fedoraConnection->connection->__construct();
+    $fedoraConnection = null;
+
+    return $results;
+}
+
+function drush_islandora_cwrc_basexdb_sig_handler($signo) 
+{
+  global $pids, $pidFileWritten;
+  if ($signo == SIGTERM || $signo == SIGHUP || $signo == SIGINT) {
+    // If we are being restarted or killed, quit all children
+    // Send the same signal to the children which we recieved
+    foreach ($pids as $p) {
+      posix_kill($p, $signo);
+    }
+
+    // Women and Children first (let them exit)
+    foreach ($pids as $p) {
+      pcntl_waitpid($p, $status);
+    }
+    drush_print("Parent : " . getmypid() . " all my kids should be gone now. Exiting.\n");
+    exit();
+  }
+  else if ($signo == SIGUSR1) {
+    drush_print("I currently have " . count($pids) . " children\n");
+  }
+}
+
+
+
+
+/**
+ * Load content from Islandora/Fedora into BaseX database
+ * Use multitasking with multiple process to populate the XML db
+ *
+ * based on:
+ *  http://www.mullie.eu/parallel-processing-multi-tasking-php/
+ *  https://github.com/cwrc/php_listeners/blob/taverna-1.x/listener.php
+ */
+function drush_islandora_cwrc_basexdb_load_multiprocess()
+{
+  //try 
+  {
+    drush_print("Load XML Database content from Islandora/Fedora");
+    
+    // Include modules.
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+    module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+
+    // number of child processes
+    $numChildProcesses = 5;
+    $numChildProcesses = 10;
+    $numChildProcesses = 20;
+    //$numChildProcesses = 1;
+
+    // Handle interrupt signals
+    ini_set('display_errors', 0);
+
+    // process ids
+    global $pids;
+    $pids = array();
+
+    // Handle signals so we can exit nicely
+    declare(ticks = 1);
+
+    // setup signal handlers to actually catch and direct the signals
+    pcntl_signal(SIGTERM, "drush_islandora_cwrc_basexdb_sig_handler");
+    pcntl_signal(SIGHUP, "drush_islandora_cwrc_basexdb_sig_handler");
+    pcntl_signal(SIGINT, "drush_islandora_cwrc_basexdb_sig_handler");
+    pcntl_signal(SIGUSR1, "drush_islandora_cwrc_basexdb_sig_handler");
+
+    $results = drush_islandora_cwrc_basexdb_get_PID_array();
+
+    //drush_print("results:");
+    
+    //var_dump($results);  
+
+    foreach ($results as $result) 
+    {
+      $fedoraPid = $result['object']['value']; // match SparQL select term
+      drush_print("tmp:" . $fedoraPid);
+
+//      if (count($pids) < $numChildProcesses) 
+      {
+        $pid = pcntl_fork();
+        if ($pid == 0) 
+        { 
+          try {
+            // child process
+            drush_print("Child : " . getmypid() . "\n");
+
+            // ToDo - more efficient way instead of opening and closing connect
+            // each time - unable to install pthreads
+            // connection to Tuque/Islandora
+            $fedoraConnection = null;
+            drush_islandora_cwrc_basexdb_init_multitasking($fedoraConnection);
+            //$fedoraConnection->connection->__destruct();
+            //drush_islandora_cwrc_basexdb_init($fedoraConnection);
+            //drush_print('user:' .  $fedoraConnection->connection->username);
+            
+            //drush_print("Child cookies : " . $fedoraConnection->connection->cookieFile . "\n");
+
+            // connection to the BaseXDB 
+            $xmldb_config = null;
+            $basexObj = null; 
+            drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config); 
+            $basexObj = new xmldb_basex($xmldb_config,null);
+            $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
+            drush_print($basexObj->basexSession->info());
+
+            //$fedoraPid = $result['object']['value']; // match SparQL select term
+            drush_print("child fedoraPid: " . $fedoraPid);
+            $fedora_object = islandora_object_load($fedoraPid);
+            drush_print($basexObj->basexdb_add_content($fedora_object));
+            //drush_print($basexObj->basexSession->info());
+            
+//            $basexObj->close();
+            $xmldb_config = null;
+            $basexObj = null; 
+            $fedoraPid = null; 
+            $fedora_object = null; 
+            $fedoraConnection = null;
+          }
+          catch (Exception $e)
+          {
+            $file_error_count++;
+            drush_print("pid=$fedoraPid was not added.");
+            drush_print($e->getMessage());
+          }
+          //exit(0); // causes: Drush command terminated abnormally due to an unrecoverable error.
+          break;
+        }
+        elseif ($pid > 0) 
+        {
+          // parent process
+          drush_print("Parent : " . getmypid() . "\n");
+          // add pids to a global array, so that when we get a kill signal
+          // tell the kids to flush and exit.
+          $pids[] = $pid;
+          drush_print("pid:" . $pid . " count:" . count($pids) . '-' . $numChildProcesses);
+          drush_print("parent:" . $fedoraPid);
+          $currentPidsCnt = count($pids);
+          if ($currentPidsCnt >= $numChildProcesses && $currentPidsCnt != 0) 
+          {
+            $dead_and_gone = pcntl_waitpid(-1, $status);
+            while ($dead_and_gone > 0) {
+              drush_print("wait2:" . $dead_and_gone);
+
+              // Remove the gone pid from the array
+              unset($pids[array_search($dead_and_gone, $pids)]);
+
+              // Look for another one
+              $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
+            }
+          }
+        }
+        else
+        {
+          drush_print("error no child created" . "\n");
+        }
+
+
+      }
+      // Collect any children which have exited on their own. pcntl_waitpid will
+      // return the PID that exited or 0 or ERROR
+      // WNOHANG means we won't sit here waiting if there's not a child ready
+      // for us to reap immediately
+      // -1 means any child
+      $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
+      while ($dead_and_gone > 0) {
+        drush_print("wait:" . $fedoraPid);
+
+        // Remove the gone pid from the array
+        unset($pids[array_search($dead_and_gone, $pids)]);
+
+        // Look for another one
+        $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
+      }
+      // Roughly ever 60 seconds print the memory usage
+      if ($timer > 1200) {
+        drush_print("Daemon memory usage: " . memory_get_usage() . "\n");
+        $timer = 0;
+      }
+      $timer++;
+      // Sleep for 1 second
+      usleep(50000);
+    }
+  } 
+//  catch (Exception $e) 
+//  {
+//     // print exception
+//     print $e->getMessage();
+//  } 
+}
+
+
 
 /**
  * Load content from Islandora/Fedora into BaseX database
@@ -454,10 +708,55 @@ function drush_islandora_cwrc_basexdb_init (
   // grab the current user specified as on the command-line via 'drush -u 0'
   //$user = user_load_by_name($GLOBALS['user']->name);
   global $user;
-  $connection = islandora_get_tuque_connection();
   $connection->connection->username = $user->name;
   $connection->connection->password = $user->pass;
 }
+
+
+/**
+ * CWRC migration batch - migration_init
+ *
+ * @param string $connection
+ *   tuque connection object
+ */
+function drush_islandora_cwrc_basexdb_init_multitasking (
+    &$connection
+  )
+{
+  // Include modules.
+  //module_load_include('inc', 'islandora', 'includes/utilities');
+  //module_load_include('inc', 'cwrc_migration_batch', 'includes/helpers');
+
+  ini_set('max_execution_time', 300);
+
+
+  // Get the tuque connection.
+  $connection = islandora_get_tuque_connection();
+  // CurlConnection >createCookieFile() - used to generate new tempnam
+  // and not resuse the one in the cached version
+  $connection->connection->__construct();
+  //$connection->connection->reuseConnection = FALSE;
+  //$connection->connection->reuseConnection = FALSE;
+  //$connection->connection->cookies = FALSE;
+  //if (IslandoraTuque::exists()) {
+    //try {
+        //$connection = new IslandoraTuque();
+    //}
+    //catch (Exception $e) {
+        //drupal_set_message(t('Unable to connect to the repository %e', array('%e' => $e)), 'error');
+      //}
+  //}
+
+
+
+  // grab the current user specified as on the command-line via 'drush -u 0'
+  //$user = user_load_by_name($GLOBALS['user']->name);
+  global $user;
+  $connection->connection->username = $user->name;
+  $connection->connection->password = $user->pass;
+}
+
+
 
 
 /**
@@ -474,7 +773,8 @@ function drush_islandora_cwrc_basexdb_xmldb_config (
   $xmldb_config->basexdb_server_url = variable_get('islandora_cwrc_basexdb_server_url');
   $xmldb_config->basexdb_server_port = variable_get('islandora_cwrc_basexdb_server_port');
   $xmldb_config->basexdb_username = variable_get('islandora_cwrc_basexdb_username');
-  $xmldb_config->basexdb_password = islandora_cwrc_basexdb_get_password('islandora_cwrc_basexdb_password');
+//  $xmldb_config->basexdb_password = islandora_cwrc_basexdb_get_password('islandora_cwrc_basexdb_password');
+  $xmldb_config->basexdb_password = "admin";
 
 }
 

@@ -103,7 +103,7 @@ class xmldb_basex {
       $date->setTimezone(new DateTimeZone('UTC'));
       $str_server_now = $date->format('Y-m-d\TH:i:s\Z');
 
-      return 'Error: failed to load - ['.'] ' . $str_server_now ;
+      return 'Error: failed to load obj - ['.'] ' . $str_server_now ;
     }
 
     // if the Feodra object has a start of 'deleted' or 'inactive'
