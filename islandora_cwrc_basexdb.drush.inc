@@ -185,7 +185,6 @@ function drush_islandora_cwrc_basexdb_get_PID_array()
 EOQ;
      */
 
-
     $query = <<<EOQ
     SELECT ?object
     FROM <#ri>
@@ -199,8 +198,6 @@ EOQ;
 
     $results = $fedoraConnection->repository->ri->sparqlQuery($query);
 
-    $fedoraConnection->connection->__destruct();
-    $fedoraConnection->connection->__construct();
     $fedoraConnection = null;
 
     return $results;
@@ -250,11 +247,12 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
+    ini_set('max_execution_time', 0);
+
     // number of child processes
     $numChildProcesses = 5;
     $numChildProcesses = 10;
     $numChildProcesses = 20;
-    //$numChildProcesses = 1;
 
     // Handle interrupt signals
     ini_set('display_errors', 0);
@@ -272,18 +270,22 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
     pcntl_signal(SIGINT, "drush_islandora_cwrc_basexdb_sig_handler");
     pcntl_signal(SIGUSR1, "drush_islandora_cwrc_basexdb_sig_handler");
 
+    // setup authentication for the XML DB
+    $xmldb_config = null;
+    drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config); 
+
+    // get array of Fedora PIDs to add to the XML DB
     $results = drush_islandora_cwrc_basexdb_get_PID_array();
 
-    //drush_print("results:");
-    
-    //var_dump($results);  
-
+    $cnt = 0;
     foreach ($results as $result) 
     {
+      $cnt++;
+      drush_print("cnt:" . $cnt);
+
       $fedoraPid = $result['object']['value']; // match SparQL select term
       drush_print("tmp:" . $fedoraPid);
 
-//      if (count($pids) < $numChildProcesses) 
       {
         $pid = pcntl_fork();
         if ($pid == 0) 
@@ -297,28 +299,19 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
             // connection to Tuque/Islandora
             $fedoraConnection = null;
             drush_islandora_cwrc_basexdb_init_multitasking($fedoraConnection);
-            //$fedoraConnection->connection->__destruct();
-            //drush_islandora_cwrc_basexdb_init($fedoraConnection);
-            //drush_print('user:' .  $fedoraConnection->connection->username);
-            
-            //drush_print("Child cookies : " . $fedoraConnection->connection->cookieFile . "\n");
 
             // connection to the BaseXDB 
-            $xmldb_config = null;
             $basexObj = null; 
-            drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config); 
             $basexObj = new xmldb_basex($xmldb_config,null);
             $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
             drush_print($basexObj->basexSession->info());
 
-            //$fedoraPid = $result['object']['value']; // match SparQL select term
             drush_print("child fedoraPid: " . $fedoraPid);
             $fedora_object = islandora_object_load($fedoraPid);
             drush_print($basexObj->basexdb_add_content($fedora_object));
             //drush_print($basexObj->basexSession->info());
             
 //            $basexObj->close();
-            $xmldb_config = null;
             $basexObj = null; 
             $fedoraPid = null; 
             $fedora_object = null; 
@@ -345,6 +338,12 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
           $currentPidsCnt = count($pids);
           if ($currentPidsCnt >= $numChildProcesses && $currentPidsCnt != 0) 
           {
+            // Collect any children which have exited on their own. pcntl_waitpid will
+            // return the PID that exited or 0 or ERROR
+            // WNOHANG means we won't sit here waiting if there's not a child ready
+            // for us to reap immediately
+            // -1 means any child
+
             $dead_and_gone = pcntl_waitpid(-1, $status);
             while ($dead_and_gone > 0) {
               drush_print("wait2:" . $dead_and_gone);
@@ -379,6 +378,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
         // Look for another one
         $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
       }
+
       // Roughly ever 60 seconds print the memory usage
       if ($timer > 1200) {
         drush_print("Daemon memory usage: " . memory_get_usage() . "\n");
@@ -389,11 +389,14 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
       usleep(50000);
     }
   } 
+
 //  catch (Exception $e) 
 //  {
 //     // print exception
 //     print $e->getMessage();
 //  } 
+
+  $xmldb_config = null;
 }
 
 
@@ -773,8 +776,6 @@ function drush_islandora_cwrc_basexdb_xmldb_config (
   $xmldb_config->basexdb_server_url = variable_get('islandora_cwrc_basexdb_server_url');
   $xmldb_config->basexdb_server_port = variable_get('islandora_cwrc_basexdb_server_port');
   $xmldb_config->basexdb_username = variable_get('islandora_cwrc_basexdb_username');
-//  $xmldb_config->basexdb_password = islandora_cwrc_basexdb_get_password('islandora_cwrc_basexdb_password');
-  $xmldb_config->basexdb_password = "admin";
-
+  $xmldb_config->basexdb_password = islandora_cwrc_basexdb_get_password('islandora_cwrc_basexdb_password');
 }
 
