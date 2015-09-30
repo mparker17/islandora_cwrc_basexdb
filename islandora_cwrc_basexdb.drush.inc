@@ -97,7 +97,7 @@ function drush_islandora_cwrc_basexdb_init_db()
     // Include modules.
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
     // connection to the BaseXDB 
     drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
@@ -131,7 +131,7 @@ function drush_islandora_cwrc_basexdb_drop_db()
     // Include modules.
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
     // connection to the BaseXDB 
     drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
@@ -245,7 +245,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
     // Include modules.
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
     // number of child processes
     $numChildProcesses = 5;
@@ -414,7 +414,7 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     // Include modules.
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+    include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
     // connection to Tuque/Islandora
     $fedoraConnection = null;
@@ -496,7 +496,7 @@ function drush_islandora_cwrc_basexdb_test (
   // Include modules.
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
   // connection to Tuque/Islandora
   $connection = null;
@@ -588,7 +588,7 @@ function drush_islandora_cwrc_basexdb_test_delete()
   // Include modules.
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
   global $user;
   drush_islandora_cwrc_basexdb_init ($connection);
@@ -622,7 +622,7 @@ function drush_islandora_cwrc_basexdb_test_xq()
   // Include modules.
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
-  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
   global $user;
   drush_islandora_cwrc_basexdb_init ($connection);

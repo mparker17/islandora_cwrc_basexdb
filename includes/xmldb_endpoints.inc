@@ -61,7 +61,7 @@ function islandora_cwrc_exec_xquery($xquery )
 
   // Include modules.
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
-  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
   // user information to pass to the XQuery for the access control restrictions
   global $user;
