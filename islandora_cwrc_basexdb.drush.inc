@@ -247,9 +247,6 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
     module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
-    ini_set('max_execution_time', 0);
-    set_time_limit(1209600);
-
     // number of child processes
     $numChildProcesses = 5;
     $numChildProcesses = 10;
@@ -704,7 +701,7 @@ function drush_islandora_cwrc_basexdb_init (
   //module_load_include('inc', 'islandora', 'includes/utilities');
   //module_load_include('inc', 'cwrc_migration_batch', 'includes/helpers');
 
-  ini_set('max_execution_time', 300);
+  ini_set('max_execution_time', 86400);
 
 
   // Get the tuque connection.
@@ -732,7 +729,10 @@ function drush_islandora_cwrc_basexdb_init_multitasking (
   //module_load_include('inc', 'islandora', 'includes/utilities');
   //module_load_include('inc', 'cwrc_migration_batch', 'includes/helpers');
 
-  ini_set('max_execution_time', 300);
+  //ini_set('max_execution_time', 300);
+
+  ini_set('max_execution_time', '1209600' );
+  set_time_limit(1209600);
 
 
   // Get the tuque connection.
