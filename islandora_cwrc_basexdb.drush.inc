@@ -325,7 +325,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
           //exit(0); // causes: Drush command terminated abnormally due to an unrecoverable error.
           break;
         }
-        elseif ($pid > 0) 
+        if ($pid > 0) 
         {
           // parent process
           //drush_print("Parent : " . getmypid() . "\n");
@@ -355,29 +355,13 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
             }
           }
         }
-        else
+        if ($pid ==-1 ) 
         {
           drush_print("error no child created" . "\n");
         }
 
 
       }
-      // Collect any children which have exited on their own. pcntl_waitpid will
-      // return the PID that exited or 0 or ERROR
-      // WNOHANG means we won't sit here waiting if there's not a child ready
-      // for us to reap immediately
-      // -1 means any child
-      $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
-      while ($dead_and_gone > 0) {
-        //drush_print("wait:" . $fedoraPid);
-
-        // Remove the gone pid from the array
-        unset($pids[array_search($dead_and_gone, $pids)]);
-
-        // Look for another one
-        $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
-      }
-
       // Roughly ever 60 seconds print the memory usage
       if ($timer > 1200) {
         drush_print("Daemon memory usage: " . memory_get_usage() . "\n");
@@ -385,7 +369,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
       }
       $timer++;
       // Sleep for 1 second
-      usleep(50000);
+      //usleep(50000);
     }
   } 
 
@@ -394,6 +378,23 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
 //     // print exception
 //     print $e->getMessage();
 //  } 
+
+  if ( $pid > 0 and count($pids) != 0 )
+  {
+    // Collect any children which have exited on their own. pcntl_waitpid will
+    // return the PID that exited or 0 or ERROR
+    // WNOHANG means we won't sit here waiting if there's not a child ready
+    // for us to reap immediately
+    // -1 means any child
+    do
+    { 
+      $dead_and_gone = pcntl_waitpid(-1, $status);
+        // Remove the gone pid from the array
+        unset($pids[array_search($dead_and_gone, $pids)]);
+
+    } while (count($pids) != 0);
+  }
+
 
   $xmldb_config = null;
 }
