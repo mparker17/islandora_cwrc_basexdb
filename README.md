@@ -28,8 +28,11 @@ Install
 * install BaseX v8.2+ as per directions - http://basex.org/products/download/all-downloads/
   * create a new XML DB user 
   * the drupal module includes a Drush script to create the appropriate XML dbs assuming the created user has ""CREATE"" permissions 
+  * "CHOP" should be enabled - http://docs.basex.org/wiki/Options#Create_Options
+    * the code should handle this but as of 2015-09-30 it has not been tested
 * add to the Drupal libraries directory
-  * basex-api/BaseXClient.php - from https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
+  * https://github.com/cwrc/basex-api 
+    * basex-api/BaseXClient.php - modified version of https://github.com/BaseXdb/basex/tree/master/basex-api/src/main/php
 * install the following Drupal modules to enable the admin form
   * https://www.drupal.org/project/encrypt
   * https://www.drupal.org/project/encryptfapi
