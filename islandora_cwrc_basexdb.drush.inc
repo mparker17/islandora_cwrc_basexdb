@@ -248,11 +248,13 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
     include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
 
     ini_set('max_execution_time', 0);
+    set_time_limit(1209600);
 
     // number of child processes
     $numChildProcesses = 5;
     $numChildProcesses = 10;
     $numChildProcesses = 20;
+    $numChildProcesses = 50;
 
     // Handle interrupt signals
     ini_set('display_errors', 0);
@@ -292,7 +294,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
         { 
           try {
             // child process
-            drush_print("Child : " . getmypid() . "\n");
+            //drush_print("Child : " . getmypid() . "\n");
 
             // ToDo - more efficient way instead of opening and closing connect
             // each time - unable to install pthreads
@@ -304,9 +306,9 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
             $basexObj = null; 
             $basexObj = new xmldb_basex($xmldb_config,null);
             $basexObj->basexSession->execute("check " . variable_get('islandora_cwrc_basexdb_database_main'));
-            drush_print($basexObj->basexSession->info());
+            //drush_print($basexObj->basexSession->info());
 
-            drush_print("child fedoraPid: " . $fedoraPid);
+            //drush_print("child fedoraPid: " . $fedoraPid);
             $fedora_object = islandora_object_load($fedoraPid);
             drush_print($basexObj->basexdb_add_content($fedora_object));
             //drush_print($basexObj->basexSession->info());
@@ -329,12 +331,12 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
         elseif ($pid > 0) 
         {
           // parent process
-          drush_print("Parent : " . getmypid() . "\n");
+          //drush_print("Parent : " . getmypid() . "\n");
           // add pids to a global array, so that when we get a kill signal
           // tell the kids to flush and exit.
           $pids[] = $pid;
-          drush_print("pid:" . $pid . " count:" . count($pids) . '-' . $numChildProcesses);
-          drush_print("parent:" . $fedoraPid);
+          //drush_print("pid:" . $pid . " count:" . count($pids) . '-' . $numChildProcesses);
+          //drush_print("parent:" . $fedoraPid);
           $currentPidsCnt = count($pids);
           if ($currentPidsCnt >= $numChildProcesses && $currentPidsCnt != 0) 
           {
@@ -346,7 +348,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
 
             $dead_and_gone = pcntl_waitpid(-1, $status);
             while ($dead_and_gone > 0) {
-              drush_print("wait2:" . $dead_and_gone);
+              //drush_print("wait2:" . $dead_and_gone);
 
               // Remove the gone pid from the array
               unset($pids[array_search($dead_and_gone, $pids)]);
@@ -370,7 +372,7 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
       // -1 means any child
       $dead_and_gone = pcntl_waitpid(-1, $status, WNOHANG);
       while ($dead_and_gone > 0) {
-        drush_print("wait:" . $fedoraPid);
+        //drush_print("wait:" . $fedoraPid);
 
         // Remove the gone pid from the array
         unset($pids[array_search($dead_and_gone, $pids)]);
