@@ -307,10 +307,17 @@ function drush_islandora_cwrc_basexdb_load_multiprocess()
 
             //drush_print("child fedoraPid: " . $fedoraPid);
             $fedora_object = islandora_object_load($fedoraPid);
-            drush_print($basexObj->basexdb_add_content($fedora_object));
+            if ($fedora_object)
+            {
+              $tmp = $basexObj->basexdb_add_content($fedora_object);
+              if ($tmp != null)
+              {
+                drush_print($tmp);
+              }
+            }
             //drush_print($basexObj->basexSession->info());
             
-//            $basexObj->close();
+            $basexObj->close();
             $basexObj = null; 
             $fedoraPid = null; 
             $fedora_object = null; 

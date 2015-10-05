@@ -68,7 +68,7 @@ class xmldb_basex {
     $this->basexSession->execute("SET CHOP false;");
 
     // indexing
-    $this->basexSession->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
+    //$this->basexSession->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
     $this->basexSession->execute("SET UPDINDEX true;");// ToDo: check if required - spped
 
     $this->basexSession->execute("SET TEXTINDEX true;");

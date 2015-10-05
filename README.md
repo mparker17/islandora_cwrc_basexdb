@@ -44,6 +44,7 @@ Install
     * drush -u 1 islandora_cwrc_basexdb_init_db
   * to bootstrap the XML DB with the current contents of Fedora:
     * drush -u 1 islandora_cwrc_basexdb_load_multiprocess
+      * require php-posix (posix_kill function installed) along with pcntl. 
     * note: please change the number of processes - $numChildProcesses - depending on the server hardware
   * to continiously update the XML db as Fedora objects are altered, a listener can be used to connect to the Fedora messaging queue.
     * https://github.com/cwrc/php_listeners
