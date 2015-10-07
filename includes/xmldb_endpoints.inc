@@ -16,10 +16,10 @@ function islandora_cwrc_basexdb_test_endpoint ($xquery, $value = NULL) {
   try {
     switch ($request_method) {
       case 'GET':
-        $response = islandora_cwrc_exec_xquery($xquery, array('input'=>$value));
+        $response = islandora_cwrc_exec_xquery($xquery, drupal_get_query_parameters($_GET)  );
         break;
       case 'POST':
-        $response = islandora_cwrc_exec_xquery($xquery, $_POST['data']);
+        $response = islandora_cwrc_exec_xquery($xquery, drupal_get_query_parameters($_POST)  );
         break;
       default:
         throw new Exception('Not Implemented', 500);
@@ -56,7 +56,7 @@ function islandora_cwrc_basexdb_test_endpoint ($xquery, $value = NULL) {
 * @return
 *   the response for the XQuery - text/XML
 */ 
-function islandora_cwrc_exec_xquery($xquery )
+function islandora_cwrc_exec_xquery($xquery, $valArray )
 {
 
   // Include modules.
@@ -88,12 +88,7 @@ function islandora_cwrc_exec_xquery($xquery )
   $tmp = "";
   // ToDo: need to excape single quotes
   //$tmp = $tmp . ", 'QRY_TERMS' : '{&#34;Pauline&#34;}'";
-  foreach ( drupal_get_query_parameters() as $key=>$value)
-  {
-    $value = islandora_cwrc_basexdb_whitelist_xquery($value);
-    $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
-  }
-  foreach ( drupal_get_query_parameters($_POST) as $key=>$value)
+  foreach ( $valArray as $key=>$value)
   {
     $value = islandora_cwrc_basexdb_whitelist_xquery($value);
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
