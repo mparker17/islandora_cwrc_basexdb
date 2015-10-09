@@ -30,7 +30,7 @@ declare option db:chop 'false';
 
 declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
-declare variable $PID_LIST external := "('cwrc:8135f8f0-ce6e-4569-9c8e-165e753a76e0')";
+declare variable $PID_LIST external := ();
 declare variable $PID_COLLECTION external := "";
 
 
@@ -474,11 +474,10 @@ let $qry_pid_seq as item()* := fn:tokenize($PID_LIST,',')
 let $ac := 
   if (not(empty($qry_pid_seq))) then
     cwAccessibility:queryAccessControl(/)[@pid=$qry_pid_seq]
-  else if ($PID_COLLECTION) then
-    cwAccessibility:queryAccessControl(/)[RELS_EXT_DC/rdf:RDF/rdf:Description/fedora:isMemberOfCollection/rdf:resource=$PID_COLLECTION]
+  else if (not(empty($PID_COLLECTION))) then
+    cwAccessibility:queryAccessControl(/)[RELS-EXT_DS/rdf:RDF/rdf:Description/fedora:isMemberOfCollection/@rdf:resource=$PID_COLLECTION]
   else
     ()
-
 (:
 return
   fn:string-join($ac/@pid/data())
@@ -519,6 +518,5 @@ return
 ,
 ']}'
 )
-
 
 
