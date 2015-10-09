@@ -439,7 +439,8 @@ function drush_islandora_cwrc_basexdb_load_by_last_modified()
     //https://groups.google.com/forum/#!searchin/islandora/mulgara$3Aafter/islandora/ecV7PwQywRM/EFMT4mGIcQUJ
 
     //$startDate = "2015-06-17T15:29:21.374Z";
-    $startDate = "2005-06-17T15:29:21.374Z";
+    //$startDate = "2005-06-17T15:29:21.374Z";
+    $startDate = "2015-09-17T15:29:21.374Z";
 
     $query = <<<EOQ
     SELECT ?object

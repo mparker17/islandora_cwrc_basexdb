@@ -5,6 +5,10 @@
   * Menu Callbacks.
   */
 
+//define('ISLANDORA_PLOTIT_XQUERY_ID', 'test3.xq');
+define('ISLANDORA_PLOTIT_XQUERY_ID', 'cwrc_plot_it_json.xq');
+
+
 /**
 *  Menu callback to building response 
 */
