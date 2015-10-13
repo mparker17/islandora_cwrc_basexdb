@@ -97,7 +97,9 @@ function islandora_cwrc_exec_xquery($xquery, $valArray )
     $value = islandora_cwrc_basexdb_whitelist_xquery($value);
     $tmp = $tmp . ", '" . $key .  "' : '" . $value . "'";
   }
+  // add some constants in addition to the parameters passed into the function
   $tmp = $tmp . ", 'BASE_URL' : '".$base_url."/islandora/object'";
+  $tmp = $tmp . ", '{cwPlaceHelpers}XMLDB_CACHE_NAME' : '".variable_get('islandora_cwrc_basexdb_database_cache')."'";
   $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles $tmp }";
 
   //watchdog("xmldb",$xquery_bindings);

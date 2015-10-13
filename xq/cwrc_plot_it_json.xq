@@ -18,7 +18,7 @@ declare namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 (: options :)
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 (: declare option output:method   "xml"; :)
-declare option output:method "raw";
+declare option output:method "adaptive";
 declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
@@ -28,15 +28,19 @@ declare option output:indent   "no";
 (: database must be imported with the following option otherwise text nodes have the begining and ending whitespace "chopped off" which is undesireable for mixed content:)
 declare option db:chop 'false';
 
+(: external variables :)
 declare variable $FEDORA_PID external := "";
 declare variable $BASE_URL external := "";
 declare variable $PID_LIST external := ();
 declare variable $PID_COLLECTION external := "";
 
+(: internal constants :)
 declare variable $TYPE_ORLANDO_CWRC := "CWRC / Orlando";
 declare variable $TYPE_TEI := "TEI";
 declare variable $TYPE_MODS := "MODS";
 
+
+(: **** helper functions :)
 
 (: escape double quotes (") within a JSON value :)
 declare function local:escapeJSON ($str as xs:string?)
@@ -174,7 +178,7 @@ as xs:string?
 {
   let $placeSeq :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     ( 
       (: Orlando Place :)
@@ -182,7 +186,7 @@ as xs:string?
       return
         cwPH:get_geo_code($placeNode/@LAT/data(),$placeNode/@LONG/data(),$placeNode/@REF/data(),fn:normalize-space(cwPH:getOrlandoPlaceString($placeNode)))
     )
-    else if (fn:name($src) eq 'event') then
+    else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( 
       (: TEI Place :)
@@ -190,7 +194,7 @@ as xs:string?
       return 
         cwPH:get_geo_code("","",$placeNode/@ref/data(),fn:normalize-space($placeNode/text()))
     )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     ( 
       (: MODS Place :)
@@ -382,7 +386,7 @@ as xs:string?
       return 
         '<p>'
         ||
-        $tmp 
+        fn:serialize($tmp) 
         ||
         '</p>'
     )
@@ -503,7 +507,7 @@ return
           (: , local:outputJSON( "schema", string(fn:node-name($event_item)) ) :)
           , local:outputJSON("startDate", local:get_start_date($event_item,$type) ) 
           , local:outputJSONNotNull("endDate", local:get_end_date($event_item,$type) )
-          (:, local:get_lat_lng($event_item, $type) :)
+          , local:get_lat_lng($event_item, $type) 
           , local:outputJSON("group", local:get_event_type($event_item,$type) )
           , local:outputJSON("eventType", local:get_event_type($event_item, $type) )
           , local:outputJSON("label", local:get_label($event_item, $type) )
