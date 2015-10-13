@@ -33,6 +33,9 @@ declare variable $BASE_URL external := "";
 declare variable $PID_LIST external := ();
 declare variable $PID_COLLECTION external := "";
 
+declare variable $TYPE_ORLANDO_CWRC := "CWRC / Orlando";
+declare variable $TYPE_TEI := "TEI";
+declare variable $TYPE_MODS := "MODS";
 
 
 (: escape double quotes (") within a JSON value :)
@@ -96,13 +99,15 @@ declare function local:modsFormatDescription($src)
 };
 
 
+(: ***** collect JSON values ******* :)
+
 (: build the "date" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_start_date ($src)
+declare function local:get_start_date ($src, $type)
 as xs:string?
 {
   let $tmp :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
       (: Orlando XML :)
     ( 
       (: To do: If DATERANCE has not attribute value, determine how to interpret the decendant tags and test. :)
@@ -116,10 +121,10 @@ as xs:string?
         else
           ()
     )
-    else if (fn:name($src) eq 'event') then
+    else if ($type eq $TYPE_TEI) then
       (: TEI XML :)
       ( $src/descendant-or-self::tei:date[1]/(@when|@from|@notBefore) )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_MODS) then
       (: MODS XML :)
       ( 
         let $dateTxt :=
@@ -140,20 +145,20 @@ as xs:string?
 
 
 (: build the "end date" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_end_date ($src)
+declare function local:get_end_date ($src, $type)
 as xs:string?
 {
   let $tmp :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     ( 
       fn:replace( ($src/descendant-or-self::CHRONSTRUCT/(DATERANGE[1]/@TO)) , '\-{1,2}$','') (: Fix Orlando date format :)
     )
-    else if (fn:name($src) eq 'event') then
+    else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( $src/descendant-or-self::tei:date[1]/(@to|@notAfter) )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
       ()
     else
@@ -164,7 +169,7 @@ as xs:string?
 
 
 (: build the "latLng" (latitude/Longitude) attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_lat_lng ($src)
+declare function local:get_lat_lng ($src, $type)
 as xs:string?
 {
   let $placeSeq :=
@@ -263,12 +268,12 @@ as xs:string?
 };
 
 (: build the "eventType" (event type) attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_event_type ($src)
+declare function local:get_event_type ($src, $type)
 as xs:string?
 {
   let $tmp :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     ( 
       switch ( $src/descendant-or-self::CHRONSTRUCT/@CHRONCOLUMN/data() )
@@ -278,7 +283,7 @@ as xs:string?
         case "SOCIALCLIMATE" return "social"                 
         default return "unspecified"
     )
-    else if (fn:name($src) eq 'event') then
+    else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( 
       let $eventType := $src/@type/data()
@@ -288,7 +293,7 @@ as xs:string?
         else
           "unspecified"
     )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     ( "literary" )
     else
@@ -301,14 +306,14 @@ as xs:string?
 
 
 (: build the "label" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_label ($src)
+declare function local:get_label ($src, $type)
 as xs:string?
 {
   let $label_max_length := 40
   let $tmp := normalize-space($src/descendant-or-self::CHRONSTRUCT/CHRONPROSE)
   let $label :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     ( 
       fn:concat(
@@ -319,10 +324,10 @@ as xs:string?
         , '...'
       )
     )
-    else if (fn:name($src) eq 'event') then
-    (: TEI XML :)
-    ( $src//tei:label )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_TEI) then
+      (: TEI XML :)
+      ( $src//tei:label )
+    else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     (
       switch ( local:modsBiblType($src) )
@@ -337,14 +342,14 @@ as xs:string?
   return fn:normalize-space(fn:string-join($label , ""))
 };
 
+
 (: build the "description" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:get_description ($src)
+declare function local:get_description ($src, $type)
 as xs:string?
 {
-
   let $tmp :=
   (
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+    if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     (
       let $shortprose := 
@@ -369,7 +374,7 @@ as xs:string?
         ||
         $shortprose
     )
-    else if (fn:name($src) eq 'event') then
+    else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( 
       (: MRB: Thu 09-Apr-2015: changed so that description for TEI event is only second desc element :)
@@ -381,7 +386,7 @@ as xs:string?
         ||
         '</p>'
     )
-    else if (fn:name($src) eq 'mods') then
+    else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     (
       switch ( local:modsBiblType($src) )
@@ -397,22 +402,6 @@ as xs:string?
 };
 
 
-
-
-(: build the "citation" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
-declare function local:determineSchemaByRootElement($src)
-as xs:string?
-{
-    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
-      ( "Orlando / CWRC")
-    else if (fn:name($src) eq 'event') then
-      ( "TEI" )
-    else if (fn:name($src) eq 'mods') then
-      ( "MODS" )
-    else
-      ( "" )
-};
-
 (: build the "citation" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
 declare function local:get_citations ($src, $type)
 as xs:string?
@@ -422,24 +411,23 @@ as xs:string?
   (
     switch ( $type )
       (: Orlando or CWRC XML :)
-      case "Orlando / CWRC"
+      case $TYPE_ORLANDO_CWRC 
         return cwOH:build_citation_sequence($src//BIBCITS/BIBCIT | $src/following-sibling::BIBCITS[position()=1]/BIBCIT)
       (: TEI XML :)
-      case "TEI"
+      case $TYPE_TEI 
         return 
           for $item in $src//tei:listBibl/tei:bibl
           return 
             ( "<div>"||fn:string-join($item, " ")||"</div>" )
       (: MODS XML :)
-      case "MODS"
+      case $TYPE_MODS
         return ()
       default
         return
-          ( fn:name($src) )
+          ( "ERROR: " || fn:name($src) )
   )
   return fn:normalize-space(fn:string-join($tmp , ""))
 };
-
 
 
 (: build the "contributors" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
@@ -451,26 +439,40 @@ as xs:string?
   (
     switch ( $type )
       (: Orlando or CWRC XML :)
-      case "Orlando / CWRC"
+      case $TYPE_ORLANDO_CWRC 
         return cwOH:build_contributors_sequence($src/ancestor-or-self::*/ORLANDOHEADER/FILEDESC/PUBLICATIONSTMT/AUTHORITY)
       (: TEI XML :)
       case "TEI"
         return cwOH:build_contributors_sequence($src/ancestor-or-self::*/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:respStmt/(tei:persName || tei:name | tei:orgName))
       (: MODS XML :)
-      case "MODS"
+      case $TYPE_MODS 
         return cwOH:build_contributors_sequence($src/ancestor-or-self::*/mods:recordInfo/mods:recordContentSource)
       default
         return
-          ( )
+          ( "ERROR: " || fn:name($src) )
   )
   return fn:normalize-space(fn:string-join($tmp , ""))
 };
 
 
+(: build the "citation" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
+declare function local:determineSchemaByRootElement($src)
+as xs:string?
+{
+    if ( fn:name($src) eq 'EVENT' or fn:name($src) eq 'CHRONSTRUCT') then
+      ( $TYPE_ORLANDO_CWRC )
+    else if (fn:namespace-uri($src) eq 'http://www.tei-c.org/ns/1.0') then
+      ( $TYPE_TEI )
+    else if (fn:namespace-uri($src) eq 'http://www.loc.gov/mods/v3') then
+      ( $TYPE_MODS )
+    else
+      ( "ERROR: " || fn:name($src) )
+};
 
-let $qry_pid_seq as item()* := fn:tokenize($PID_LIST,',')
+
 
 (: the main section: define the set of elements that constitute an "event" and output as JSON :)
+let $qry_pid_seq as item()* := fn:tokenize($PID_LIST,',')
 let $ac := 
   if (not(empty($qry_pid_seq))) then
     cwAccessibility:queryAccessControl(/)[@pid=$qry_pid_seq]
@@ -499,13 +501,13 @@ return
           (
           local:outputJSON( "schemaType", string( $type ) )
           (: , local:outputJSON( "schema", string(fn:node-name($event_item)) ) :)
-          , local:outputJSON( "startDate", local:get_start_date($event_item) ) 
-          , local:outputJSONNotNull( "endDate", local:get_end_date($event_item) )
-          , local:get_lat_lng($event_item)
-          , local:outputJSON("group", local:get_event_type($event_item) )
-          , local:outputJSON("eventType", local:get_event_type($event_item) )
-          , local:outputJSON("label", local:get_label($event_item) )
-          , local:outputJSON("longLabel", local:get_description($event_item) )
+          , local:outputJSON("startDate", local:get_start_date($event_item,$type) ) 
+          , local:outputJSONNotNull("endDate", local:get_end_date($event_item,$type) )
+          (:, local:get_lat_lng($event_item, $type) :)
+          , local:outputJSON("group", local:get_event_type($event_item,$type) )
+          , local:outputJSON("eventType", local:get_event_type($event_item, $type) )
+          , local:outputJSON("label", local:get_label($event_item, $type) )
+          , local:outputJSON("longLabel", local:get_description($event_item, $type) )
           , local:outputJSONNotNull( "citations", local:get_citations($event_item, $type) )
           , local:outputJSONNotNull( "contributors", local:get_contributors($event_item, $type) )
           )
