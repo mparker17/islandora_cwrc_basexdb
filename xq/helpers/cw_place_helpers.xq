@@ -57,12 +57,12 @@ declare function cwPH:placeRefType($ref)
 (: given a uri reference, lookup the geo code :)
 declare function cwPH:get_geo_code_by_ref($ref, $placeStr)
 {
-  if ( fn:collection()/places/geonames/geoname[@geonameId/data() eq $ref][1] ) then
-    cwPH:parse_geo_code_geonames($placeStr,fn:collection()/places/geonames/geoname[@geonameId/data() eq $ref][1])
-  else if ( fn:collection()/places/cwrc_place_entities/entity[@uri/data() eq $ref][1] ) then
-    cwPH:parse_geo_code_cwrc($placeStr,fn:collection()/places/cwrc_place_entities/entity[@uri/data() eq $ref][1]/place)
-  else if ( fn:collection()/places/google_geocode/entity[@uri/data() eq $ref][1] ) then
-    cwPH:parse_geo_code_google($placeStr,fn:collection()/places/google_geocode/entity[@uri/data() eq $ref][1])
+  if ( db:open($cwPH:XMLDB_CACHE_NAME)/places/geonames/geoname[@geonameId/data() eq $ref][1] ) then
+    cwPH:parse_geo_code_geonames($placeStr,db:open($cwPH:XMLDB_CACHE_NAME)/places/geonames/geoname[@geonameId/data() eq $ref][1])
+  else if ( db:open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities/entity[@uri/data() eq $ref][1] ) then
+    cwPH:parse_geo_code_cwrc($placeStr,db:open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities/entity[@uri/data() eq $ref][1]/place)
+  else if ( db:open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode/entity[@uri/data() eq $ref][1] ) then
+    cwPH:parse_geo_code_google($placeStr,db:open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode/entity[@uri/data() eq $ref][1])
   else if ($ref != '' and $cwPH:enable_external_ref_lookup) then
   (
           switch ( cwPH:placeRefType($ref) )
