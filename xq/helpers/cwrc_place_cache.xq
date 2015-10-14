@@ -7,12 +7,12 @@
 
 xquery version "3.0" encoding "utf-8";
 
-import module namespace cwPH="cwPlaceHelpers" at "./cw_place_helpers.xq";
+import module namespace cwPH="cwPlaceHelpers" at "./helpers/cw_place_helpers.xq";
 
 declare namespace mods = "http://www.loc.gov/mods/v3";
 declare namespace tei =  "http://www.tei-c.org/ns/1.0";
 
-declare variable $cwPH:XMLDB_CACHE_NAME external := "x";
+(: declare variable $cwPH:XMLDB_CACHE_NAME external := "x"; :)
 
 
 
@@ -21,25 +21,25 @@ for $ref in //CHRONSTRUCT/CHRONPROSE/PLACE/@REF | //tei:event/tei:desc[1]/tei:pl
 group by $ref
 order by $ref
 return
-  if ( not( db.open($cwPH:XMLDB_CACHE_NAME)/places/geonames/geoname[@geonameId = $ref]) and not(db.open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities/entity[@uri = $ref]) and not (db.open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode/entity[@uri = $ref]) )  then
+  if ( not( db:open($cwPH:XMLDB_CACHE_NAME)/places/geonames/geoname[@geonameId = $ref]) and not(db:open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities/entity[@uri = $ref]) and not (db:open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode/entity[@uri = $ref]) )  then
   (
     
           switch ( cwPH:placeRefType($ref) )
           case $cwPH:geonames_str 
              return (
                let $tmp := cwPH:getGeoCodeByIDViaGeoNames($ref)
-               return insert node (<geoname geonameId="{$ref}">{$tmp/geoname/*}</geoname>) as first into db.open($cwPH:XMLDB_CACHE_NAME)/places/geonames
+               return insert node (<geoname geonameId="{$ref}">{$tmp/geoname/*}</geoname>) as first into db:open($cwPH:XMLDB_CACHE_NAME)/places/geonames
              )
           case $cwPH:cwrc_str 
              return (
                let $tmp := cwPH:getGeoCodeByIDViaCWRC($ref)
-               return insert node (<entity uri="{$ref}">{$tmp/entity/*}</entity>) as first into db.open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities
+               return insert node (<entity uri="{$ref}">{$tmp/entity/*}</entity>) as first into db:open($cwPH:XMLDB_CACHE_NAME)/places/cwrc_place_entities
              )
           case $cwPH:google_str 
              return 
              (
                let $tmp := cwPH:getGeoCodeByIDViaGoogle($ref)
-               return insert node (<entity uri="{$ref}">{$tmp}</entity>) as first into db.open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode
+               return insert node (<entity uri="{$ref}">{$tmp}</entity>) as first into db:open($cwPH:XMLDB_CACHE_NAME)/places/google_geocode
              )
            default
              return    
@@ -84,7 +84,7 @@ return
       let $refUri := "http://www.geonames.org/"||$ref||"/"
       return 
       (
-        insert node (<geoname geonameId="{$refUri}">{$tmp/geonames/geoname/*}</geoname>) as first into db.open($cwPH:XMLDB_CACHE_NAME)/places/geonames
+        insert node (<geoname geonameId="{$refUri}">{$tmp/geonames/geoname/*}</geoname>) as first into db:open($cwPH:XMLDB_CACHE_NAME)/places/geonames
         ,
         insert node (attribute {$attrName} {$refUri} ) as last into $placeNode
       )

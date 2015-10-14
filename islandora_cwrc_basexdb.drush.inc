@@ -44,7 +44,16 @@ function islandora_cwrc_basexdb_drush_command()
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
-  
+ 
+  $items['islandora_cwrc_basexdb_test_auth'] = array(
+    'description' => 'Test Fedora XACML access control',
+    'examples' => array(
+      'drush -u 1 islandora_cwrc_basexdb_test_auth'
+    ),
+    'bootstrap' => DRUSH_BOOTSTRAP_MAX
+  );
+
+ 
   $items['islandora_cwrc_basexdb_test'] = array(
     'description' => 'Test connection with XML Database',
     'examples' => array(
@@ -61,7 +70,6 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
 
-
   $items['islandora_cwrc_basexdb_test_xq'] = array(
     'description' => 'Test XQuery',
     'examples' => array(
@@ -70,14 +78,15 @@ function islandora_cwrc_basexdb_drush_command()
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
 
-
-  $items['islandora_cwrc_basexdb_test_auth'] = array(
-    'description' => 'Test Fedora XACML access control',
+  $items['islandora_cwrc_basexdb_xq_cache_update'] = array(
+    'description' => 'XQuery to update the cache',
     'examples' => array(
-      'drush -u 1 islandora_cwrc_basexdb_test_auth'
+      'drush -u 1 -l "http://cwrc-dev-01.srv.ualberta.ca" islandora_cwrc_basexdb_xq_cache_update'
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_MAX
   );
+
+
 
 
   return $items;
@@ -691,6 +700,69 @@ function drush_islandora_cwrc_basexdb_test_xq()
 
 }
 
+
+function drush_islandora_cwrc_basexdb_xq_cache_update()
+{
+
+  // Include modules.
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/xmldb_basex');
+  include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
+
+  global $user;
+  drush_islandora_cwrc_basexdb_init ($connection);
+  drush_print('user:' .  $user->name);
+
+  $user_roles = "('".implode("','", $user->roles)."')";
+  drush_print('roles:' . $user_roles);
+
+
+  // connection to the BaseXDB 
+  drush_islandora_cwrc_basexdb_xmldb_config($xmldb_config);
+  $basexObj = new xmldb_basex($xmldb_config,null);
+
+
+  // open XML Database 
+  $basexObj->basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main')); 
+  drush_print($basexObj->basexSession->info());
+
+  //$basexSession->execute("SET BINDINGS {cwAccessibility}user_external=".$connection->connection->username); 
+  //drush_print($basexSession->execute("GET BINDINGS"));
+  $tmp = "";
+  $tmp = $tmp . "'{cwPlaceHelpers}XMLDB_CACHE_NAME' : '".variable_get('islandora_cwrc_basexdb_database_cache')."'";
+  $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles , $tmp }";
+
+
+  Global $base_url;
+  $base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
+  $basexObj->basexSession->execute('SET QUERYPATH ' . $base_xquery );
+
+  // 2015-06-26
+  // ToDo: using this syntax as the BaseX server is running on another
+  // server and the 'RUN' command doesn't understand URIs
+  //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"), '.$xquery_bindings.')';
+  $xq_file = 'helpers/cwrc_place_cache.xq';
+  $xqueryStr = 'xquery:update(fetch:text("'.$base_xquery.$xq_file.'"), '.$xquery_bindings.')';
+  //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"))';
+  drush_print($xqueryStr);
+
+  //drush_print($basexSession->execute('xquery ' . $xqueryStr));
+  //drush_print($basexSession->info());
+
+  //$basexSession->execute("SET BINDINGS"); 
+  //drush_print($basexSession->execute("GET BINDINGS"));
+
+  $basexQuery = $basexObj->basexSession->query($xqueryStr);
+
+  // 2015-06-26
+  // ToDo: appears bind is overridden given the manner the XQuery is being called 
+  //$basexQuery->bind('user_external', $user->name);
+  //$basexQuery->bind('role_external', $user_roles);
+  drush_print($basexQuery->execute());
+  drush_print($basexObj->basexSession->info());
+
+  $basexObj->close();
+}
 
 
 
