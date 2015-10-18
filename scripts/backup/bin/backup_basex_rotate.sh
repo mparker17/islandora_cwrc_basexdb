@@ -6,7 +6,7 @@
 
 # Storage folder where to move backup files
 # Must contain backup.monthly backup.weekly backup.daily folders
-storage=/var/basex/backup/
+storage=/var/basex/backup
 
 # Source folder where files are backed
 source=$storage/../BaseXData
