@@ -222,7 +222,7 @@ as xs:string?
               if ($placeMap('lat')) then
                 '"' || local:escapeJSON($placeMap('lat') || "," || $placeMap('lng')) || '"'
               else
-                '""'
+                ''
             }
             catch *
             {

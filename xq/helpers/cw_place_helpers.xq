@@ -94,6 +94,8 @@ declare function cwPH:get_geo_code_by_ref($ref, $placeStr)
   else
     map {
          'placeStr': 'ERROR 01'
+          (: , 'lat': '85' :)
+          (: , 'lng': '0' :)
     }
 
 };
