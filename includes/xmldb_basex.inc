@@ -200,7 +200,7 @@ class xmldb_basex {
     $ret = null;
     foreach (libxml_get_errors() as $error) {
       // handle errors here
-      $ret = $ret . $error;
+      $ret = $ret . $error->message;
 
     }
 
