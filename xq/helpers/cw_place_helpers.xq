@@ -14,7 +14,7 @@ declare variable $cwPH:google_str := "google";
 declare variable $cwPH:cwrc_str := "cwrc";
 
 declare variable $cwPH:enable_string_lookup := fn:false();
-declare variable $cwPH:enable_external_ref_lookup as xs:boolean := fn:false();
+declare variable $cwPH:enable_external_ref_lookup as xs:boolean := fn:true();
 
 (:
 : give either a latitude/longitude pair, a uri reference, or a string to lookup
