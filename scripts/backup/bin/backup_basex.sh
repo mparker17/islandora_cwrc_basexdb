@@ -8,7 +8,7 @@ PORT="1984"
 #path to the file containing the username and password
 # file should contain one line with the username and password
 # separated by a whitespace character
-USERFILE="/home/jefferya/dev/userkey"
+USERFILE="/var/basex/backup/bin/userkey"
 
 export PATH=$PATH:/usr/bin
 

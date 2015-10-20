@@ -1,5 +1,5 @@
 #use rsync to aggregate backup files
 MAILTO="jeffery.antoniuk@ualberta.ca"
-45 01 * * * basex /var/basex/backup/bin/backup_basex_rotate.sh
-15 01 * * * basex /var/basex/backup/bin/backup_basex.sh
+33 03 * * * basex /var/basex/backup/bin/backup_basex.sh
+59 03 * * * basex /var/basex/backup/bin/backup_basex_rotate.sh
 
