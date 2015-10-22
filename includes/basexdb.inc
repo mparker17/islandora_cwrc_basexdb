@@ -24,6 +24,7 @@ define('ISLANDORA_CWRC_BASEXDB_LIB', 'basex-api');
 function islandora_cwrc_basexdb_init()
 {
   //include(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
 
   $session = new BaseXSession(
     variable_get('islandora_cwrc_basexdb_server_url')
