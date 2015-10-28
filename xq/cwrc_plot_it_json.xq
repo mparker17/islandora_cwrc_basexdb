@@ -381,8 +381,7 @@ as xs:string?
     else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( 
-      (: MRB: Thu 09-Apr-2015: changed so that description for TEI event is only second desc element :)
-      for $tmp in $src//tei:desc[2]
+      for $tmp in $src//tei:desc
       return 
         '<p>'
         ||
