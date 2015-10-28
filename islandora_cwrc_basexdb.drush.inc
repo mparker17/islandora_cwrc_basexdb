@@ -726,39 +726,8 @@ function drush_islandora_cwrc_basexdb_xq_cache_update()
   $basexObj->basexSession->execute("OPEN " . variable_get('islandora_cwrc_basexdb_database_main')); 
   drush_print($basexObj->basexSession->info());
 
-  //$basexSession->execute("SET BINDINGS {cwAccessibility}user_external=".$connection->connection->username); 
-  //drush_print($basexSession->execute("GET BINDINGS"));
-  $tmp = "";
-  $tmp = $tmp . "'{cwPlaceHelpers}XMLDB_CACHE_NAME' : '".variable_get('islandora_cwrc_basexdb_database_cache')."'";
-  $xquery_bindings = "map { '{cwAccessibility}user_external' : '$user->name', '{cwAccessibility}role_external' : $user_roles , $tmp }";
+  drush_print($basexObj->basexdb_execute_query_without_access_control("helpers/cwrc_place_cache.xq"));
 
-
-  Global $base_url;
-  $base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
-  $basexObj->basexSession->execute('SET QUERYPATH ' . $base_xquery );
-
-  // 2015-06-26
-  // ToDo: using this syntax as the BaseX server is running on another
-  // server and the 'RUN' command doesn't understand URIs
-  //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"), '.$xquery_bindings.')';
-  $xq_file = 'helpers/cwrc_place_cache.xq';
-  $xqueryStr = 'xquery:update(fetch:text("'.$base_xquery.$xq_file.'"), '.$xquery_bindings.')';
-  //$xqueryStr = 'xquery:eval(fetch:text("'.$base_xquery.'template.xq"))';
-  drush_print($xqueryStr);
-
-  //drush_print($basexSession->execute('xquery ' . $xqueryStr));
-  //drush_print($basexSession->info());
-
-  //$basexSession->execute("SET BINDINGS"); 
-  //drush_print($basexSession->execute("GET BINDINGS"));
-
-  $basexQuery = $basexObj->basexSession->query($xqueryStr);
-
-  // 2015-06-26
-  // ToDo: appears bind is overridden given the manner the XQuery is being called 
-  //$basexQuery->bind('user_external', $user->name);
-  //$basexQuery->bind('role_external', $user_roles);
-  drush_print($basexQuery->execute());
   drush_print($basexObj->basexSession->info());
 
   $basexObj->close();

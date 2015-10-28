@@ -24,6 +24,7 @@ define('ISLANDORA_CWRC_BASEXDB_LIB', 'basex-api');
 function islandora_cwrc_basexdb_init()
 {
   //include(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXclient.php');
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
 
   $session = new BaseXSession(
     variable_get('islandora_cwrc_basexdb_server_url')
@@ -39,7 +40,7 @@ function islandora_cwrc_basexdb_init()
   $session->execute("SET CHOP false;");
 
   // indexing
-  $session->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
+  //$session->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
   $session->execute("SET UPDINDEX true;");// ToDo: check if required - spped
 
   $session->execute("SET TEXTINDEX true;");
@@ -58,6 +59,7 @@ function islandora_cwrc_basexdb_init()
  *
  *
  **/
+/*
 function islandora_cwrc_basexdb_get_password($name)
 {
   $encrypted = &drupal_static(__FUNCTION__);
@@ -73,7 +75,7 @@ function islandora_cwrc_basexdb_get_password($name)
 
   return decrypt($var);
 }
-
+ */
 
 /**
  * given a Fedora object PID, read the object, extract content and 
@@ -88,6 +90,7 @@ function islandora_cwrc_basexdb_get_password($name)
  * @param string $fedoraConnection 
  *  connection object to Fedora repository 
  **/
+/*
 function islandora_cwrc_basexdb_add_content($pid, $basexSession)
 {
   $obj = islandora_object_load($pid);
@@ -158,6 +161,7 @@ function islandora_cwrc_basexdb_add_content($pid, $basexSession)
 
   return ($ret);
 
+ */
   // http://php.net/manual/en/book.simplexml.php
   // add encoding so as to prevent UTF-8 character conversion into 
   // numerical entities
@@ -184,7 +188,8 @@ function islandora_cwrc_basexdb_add_content($pid, $basexSession)
   */
 
 
-
+/*
 
 }
 
+ */

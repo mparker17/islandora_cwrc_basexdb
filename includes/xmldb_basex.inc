@@ -68,7 +68,7 @@ class xmldb_basex {
     $this->basexSession->execute("SET CHOP false;");
 
     // indexing
-    //$this->basexSession->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
+    $this->basexSession->execute("SET AUTOOPTIMIZE true;"); //ToDo check if required - speed
     $this->basexSession->execute("SET UPDINDEX true;");// ToDo: check if required - spped
 
     $this->basexSession->execute("SET TEXTINDEX true;");
@@ -77,6 +77,9 @@ class xmldb_basex {
 
     // stemming
     $this->basexSession->execute("SET STEMMING true;");
+
+    // 
+    $this->basexSession->execute("SET QUERYPATH " . (string)$this->config->basexdb_querypath . ";");
 
     return $this->basexSession;
   }
@@ -121,7 +124,7 @@ class xmldb_basex {
       $message_time = (isset($msgDateTime)) ? strtotime($msgDateTime) : null;
       $basex_time = (isset($basex_time_str)) ? strtotime($basex_time_str) : null;
       $fedora_time = (isset($fedora_time_str)) ? strtotime($fedora_time_str) : null;
-      print($basex_time_str . " - " . $fedora_time_str);
+      print($basex_time_str . " - " . $fedora_time_str . "\n");
       if ( 
         (!isset($basex_time) && isset($fedora_object)) // new fedora obj 
         or 
@@ -132,7 +135,11 @@ class xmldb_basex {
         //(isset($basex_time) && isset($fedora_time) && isset($message_time) && $basex_time<$message_time))
       )
       {
-        return $this->basexdb_do_replace($fedora_object);
+        print("update object: ".$fedora_object->id." at ".$fedora_time_str."\n");
+        $ret = $this->basexdb_do_replace($fedora_object);
+        $this->basexdb_execute_query_without_access_control("helpers/cwrc_place_cache.xq");
+        //$ret .= $this->basexdb_command_optimize($fedora_object);
+        return $ret;
       }
     }
   }
@@ -200,7 +207,7 @@ class xmldb_basex {
     $ret = null;
     foreach (libxml_get_errors() as $error) {
       // handle errors here
-      $ret = $ret . $error;
+      $ret = $ret . $error->message;
 
     }
 
@@ -283,7 +290,58 @@ class xmldb_basex {
   }
 
 
+  /**
+   * run the "optimize" command on the XML database to update the index and stats 
+   *
+   *
+   **/
+  function basexdb_command_optimize($pid)
+  {
+    return $this->basexSession->execute("optimize");
+  }
 
 
-}
+  /**
+   *
+   * Cache the place URI in the given XML DB - ingore access control on file
+   * assumes the querypath had previously been setup
+   *
+   * @param string xquery
+   *    the filename of the xquery 
+   *
+   * @param basexSession
+   *    BaseX session object
+   *
+   * @return 
+   *    result of the XQuery
+   *
+   **/
+  function basexdb_execute_query_without_access_control($xquery)
+  {
+    // base URL from XQuery includd modules
+    //Global $base_url;
+    //$base_xquery = $base_url . '/'. drupal_get_path('module','islandora_cwrc_basexdb') .  '/xq/';
+    //print("update xml29: ".$xquery."\n");
+    //$this->basexSession->execute('SET QUERYPATH ' . $base_xquery );
+
+    // add some constants in addition to the parameters passed into the function
+   //$tmp = $tmp . " '{cwPlaceHelpers}XMLDB_CACHE_NAME' : '".variable_get('islandora_cwrc_basexdb_database_cache')."'";
+    $tmp = "";
+    $tmp = $tmp . " '{cwPlaceHelpers}XMLDB_CACHE_NAME' : '".(string)$this->config->basexdb_cachedb."'";
+    $xquery_bindings = "map { $tmp }";
+   
+    //watchdog("xmldb",$xquery_bindings);
+   
+    // 2015-06-26
+    // ToDo: using this syntax as the BaseX server is running on another
+    // server and the 'RUN' command doesn't understand URIs
+    $xqueryStr = 'xquery:update(fetch:text("'.(string)$this->config->basexdb_querypath . $xquery.'"), '.$xquery_bindings.')';
+
+    //$ret = $xqueryStr;
+    $basexQuery = $this->basexSession->query($xqueryStr);
+    $ret = $basexQuery->execute(); 
+  }
+
+
+ }
 
