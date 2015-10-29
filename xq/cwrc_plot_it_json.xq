@@ -510,7 +510,7 @@ return
           , local:outputJSON("group", local:get_event_type($event_item,$type) )
           , local:outputJSON("eventType", local:get_event_type($event_item, $type) )
           , local:outputJSON("label", local:get_label($event_item, $type) )
-          , local:outputJSON("longLabel", local:get_description($event_item, $type) )
+          , local:outputJSON("description", local:get_description($event_item, $type) )
           , local:outputJSONNotNull( "citations", local:get_citations($event_item, $type) )
           , local:outputJSONNotNull( "contributors", local:get_contributors($event_item, $type) )
           , local:outputJSONNotNull( "link", $BASE_URL||'/'||$event_item/ancestor::obj/@pid/data() )
