@@ -362,7 +362,7 @@ as xs:string?
         (
         "<p>"
         ||
-        $src/descendant-or-self::SHORTPROSE
+        fn:serialize($src/descendant-or-self::SHORTPROSE)
         ||
         "</p>"
         )
@@ -372,7 +372,7 @@ as xs:string?
       return
         "<p>"
         ||
-        $src/descendant-or-self::CHRONSTRUCT/CHRONPROSE
+        fn:serialize($src/descendant-or-self::CHRONSTRUCT/CHRONPROSE)
         ||
         "</p>"
         ||
