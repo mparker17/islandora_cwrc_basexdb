@@ -176,7 +176,12 @@ class xmldb_basex {
     $rootNode->appendChild($tmpAttr);
     $tmpAttr = $dom->createAttribute("createdDate");
     $tmpAttr->value = $fedora_object->createdDate;
+    // 2015-010-30 - explict add MODS and TEI namespace to avoid
+    // "default" and "default1" prefixes being added to elements 
+    $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', "xmlns:tei", "http://www.tei-c.org/ns/1.0");
+    $rootNode->setAttributeNS('http://www.w3.org/2000/xmlns/', "xmlns:mods", "http://www.loc.gov/mods/v3");
     $rootNode->appendChild($tmpAttr);
+
 
     // add content from datastreams 
     $tmpDom = null;

@@ -383,11 +383,7 @@ as xs:string?
     ( 
       for $tmp in $src//tei:desc
       return 
-        '<p>'
-        ||
-        fn:serialize($tmp) 
-        ||
-        '</p>'
+        fn:serialize(<tei:p xmlns='http://www.tei-c.org/ns/1.0'>{$tmp}</tei:p>) 
     )
     else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
