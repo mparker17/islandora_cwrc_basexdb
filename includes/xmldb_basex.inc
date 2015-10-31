@@ -195,10 +195,15 @@ class xmldb_basex {
           $tmpDom->loadXML($datastream->content);
 
           // import content from datastream and  add to root node
-          $tmpNode = $dom->createElement($datastream->id."_DS");
-          $importNode = $dom->importNode($tmpDom->documentElement, TRUE);
-          $tmpNode->appendChild($importNode);
-          $rootNode->appendChild($tmpNode);
+          if ($tmpDom->documentElement)
+          {
+            $tmpNode = $dom->createElement($datastream->id."_DS");
+            $importNode = $dom->importNode($tmpDom->documentElement, TRUE);
+            $tmpNode->appendChild($importNode);
+            $rootNode->appendChild($tmpNode);
+          }
+
+          $tmpDom = null;
         }
       }
     }
