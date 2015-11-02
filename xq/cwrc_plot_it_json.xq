@@ -403,9 +403,12 @@ as xs:string?
 (: build the list of collections :)
 declare function local:get_collections ($src)
 {
-  for $tmp in  $src/ancestor::obj/RELS-EXT_DS/rdf:RDF/rdf:Description/fedora:isMemberOfCollection/@rdf:resource/data()
-  return 
-    fn:substring-after($tmp, '/')
+  let $tmpStr :=
+    for $tmp in  $src/ancestor::obj/RELS-EXT_DS/rdf:RDF/rdf:Description/fedora:isMemberOfCollection/@rdf:resource/data()
+    return
+      fn:substring-after(fn:string($tmp), '/')
+  return
+    '"'||fn:string-join($tmpStr,'","')||'"'
 };
 
 (: build the "citation" attribute from the different schemas: Orlando, TEI, MODS, and CWRC :)
@@ -510,7 +513,7 @@ return
           , local:outputJSON("startDate", local:get_start_date($event_item,$type) ) 
           , local:outputJSONNotNull("endDate", local:get_end_date($event_item,$type) )
           , local:get_lat_lng($event_item, $type) 
-          , local:outputJSON("group", local:get_collections($event_item) )
+          , local:outputJSONArray("group", local:get_collections($event_item) )
           , local:outputJSON("eventType", local:get_event_type($event_item, $type) )
           , local:outputJSON("label", local:get_label($event_item, $type) )
           , local:outputJSON("description", local:get_description($event_item, $type) )
