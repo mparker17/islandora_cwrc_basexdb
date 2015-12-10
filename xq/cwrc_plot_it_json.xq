@@ -46,7 +46,10 @@ declare variable $TYPE_MODS := "MODS";
 declare function local:escapeJSON ($str as xs:string?)
 {
   (: XQuery 3.1 doesn't support look-behinds so need extra replace for case where " is the first character :)
-  fn:replace( fn:replace($str, '^["]', '\\"') , '([^\\])["]', '$1\\"')
+  (: missed the "" case of an empty attribute :)
+  (: fn:replace( fn:replace($str, '^["]', '\\"') , '([^\\])["]', '$1\\"') :)
+  (: if " starts a string, or two consecutive, or one alone. :)
+  fn:replace( fn:replace( fn:replace($str, '^["]', '\\"'), '["]{2,2}', '\\"\\"') , '([^\\])["]', '$1\\"')
 };
 
 
@@ -493,7 +496,7 @@ let $ac :=
 return
   fn:string-join($ac/@pid/data())
 :)
-let $events_sequence := ($ac//tei:event | $ac/*/EVENT | $ac/*/EVENTS//((FREESTANDING_EVENT|HOSTED_EVENT)/CHRONSTRUCT) | $ac/*/(WRITING|BIOGRAPHY)//CHRONSTRUCT | $ac/*/mods:mods)
+let $events_sequence := ($ac//tei:event | $ac/*/EVENT | $ac/*/EVENTS//((FREESTANDING_EVENT|HOSTED_EVENT)/CHRONSTRUCT) | $ac/*/(WRITING|BIOGRAPHY|CWRC)//CHRONSTRUCT | $ac/*/mods:mods)
 return
 (
 '{ "items": [&#10;'
