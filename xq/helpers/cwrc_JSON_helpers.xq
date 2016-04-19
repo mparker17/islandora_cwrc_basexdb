@@ -7,7 +7,7 @@ module namespace cwJSON = "cwJSONHelpers";
 (: **** helper functions :)
 
 (: escape double quotes (") within a JSON value :)
-declare function local:escapeJSON ($str as xs:string?)
+declare function cwJSON:escapeJSON ($str as xs:string?)
 {
   (: XQuery 3.1 doesn't support look-behinds so need extra replace for case where " is the first character :)
   (: missed the "" case of an empty attribute :)
@@ -18,25 +18,25 @@ declare function local:escapeJSON ($str as xs:string?)
 
 
 (: if value is empty then do not output JSON key/value :)
-declare function local:outputJSONNotNull ($key as xs:string?, $value as xs:string?)
+declare function cwJSON:outputJSONNotNull ($key as xs:string?, $value as xs:string?)
 as xs:string?
 {
   (
   if ($value != "") then
-    local:outputJSON ($key, $value)
+    cwJSON:outputJSON ($key, $value)
   else
     ()
   )
 };
 
-declare function local:outputJSON ($key as xs:string?, $value as xs:string?)
+declare function cwJSON:outputJSON ($key as xs:string?, $value as xs:string?)
 as xs:string?
 {
-  let $tmp := string('"'||$key||'": "'||local:escapeJSON($value)||'"')
+  let $tmp := string('"'||$key||'": "'||cwJSON:escapeJSON($value)||'"')
   return $tmp
 };
 
-declare function local:outputJSONArray ($key as xs:string?, $value)
+declare function cwJSON:outputJSONArray ($key as xs:string?, $value)
 as xs:string?
 {
   let $tmp := string('"'||$key||'": ['||$value||']')

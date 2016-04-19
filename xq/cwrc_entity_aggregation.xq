@@ -4,7 +4,7 @@ xquery version "3.0" encoding "utf-8";
 
 (: import helper modules :)
 import module namespace cwAccessibility="cwAccessibility" at "./islandora_access_control.xq"; (: Fedora XACML permissions :)
-import module namespace cwJSON="cwJSON" at "./cwrc_JSON_helpers.xq"; (: common JSON functions :)
+import module namespace cwJSON="cwJSONHelpers" at "./helpers/cwrc_JSON_helpers.xq"; (: common JSON functions :)
 
 
 (: declare namespaces used in the content :)
@@ -161,15 +161,15 @@ declare function local:populateProfileTitle($obj,$objCModel)
 declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:string?
 {
 
-        switch ( $objCModel )
+        switch ( $entityCModel )
             case "info:fedora/cwrc:person-entityCModel" 
-                return local:populateProfilePerson($obj,$objCModel)
+                return local:populateProfilePerson($entityObj,$entityCModel)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileOrganization($obj,$objCModel)
+                return local:populateProfileOrganization($entityObj,$entityCModel)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfilePlace($obj,$objCModel)
+                return local:populateProfilePlace($entityObj,$entityCModel)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileTitle($obj,$objCModel)                
+                return local:populateProfileTitle($entityObj,$entityCModel)                
             default 
                 return ''
 };
@@ -616,11 +616,11 @@ declare function local:populatePersonCoMentioningPlace($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq            
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
             )
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(/)[
@@ -743,11 +743,11 @@ declare function local:populateOrganizationCoMentioningPlace($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq            
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
             )
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(/)[
@@ -813,12 +813,11 @@ declare function local:populatePlaceCoMentioningPerson($query_uri_seq)
         cwAccessibility:queryAccessControl(/)/(
                 CWRC_DS//tei:persName[
                     (ancestor::tei:event|ancestor::tei:note|ancestor::tei:p)/descendant::tei:placeName/@ref/data()=$query_uri_seq
-                    ]/@ref
+                    ]/@ref/data()
                 |
-                CWRC_DS//NAME[(ancestor::CHRONSTRUCT|ancestor::P)/descendant::PLACE/@REF/data()=$query_uri_seq]/@REF
+                CWRC_DS//NAME[(ancestor::CHRONSTRUCT|ancestor::P)/descendant::PLACE/@REF/data()=$query_uri_seq]/@REF/data()
                 )/data()
-      
-      
+            
     return
         ( distinct-values( ($uris_mods, $uris_entries_about, $uris_entries_context) ) )     
         
@@ -875,11 +874,11 @@ declare function local:populatePlaceCoMentioningPlace($query_uri_seq)
             or 
             MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq            
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
             )
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(/)[
@@ -1009,11 +1008,11 @@ declare function local:populateTitleCoMentioningPlace($query_uri_seq)
         cwAccessibility:queryAccessControl(/)[
             @pid/data()=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq            
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
             )
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(/)[
@@ -1050,7 +1049,7 @@ declare function local:populateTitleCoMentioningPlace($query_uri_seq)
 (: ***********  ********** :)
 
 
-declare function local:populationsAssociationsPerson($query_uri_seq) as xs:string?
+declare function local:populateAssociationsPerson($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
@@ -1062,7 +1061,7 @@ declare function local:populationsAssociationsPerson($query_uri_seq) as xs:strin
         )
 };
 
-declare function local:populationsAssociationsOrganization($query_uri_seq) as xs:string?
+declare function local:populateAssociationsOrganization($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
@@ -1075,7 +1074,7 @@ declare function local:populationsAssociationsOrganization($query_uri_seq) as xs
 };
 
 
-declare function local:populationsAssociationsPlace($query_uri_seq) as xs:string?
+declare function local:populateAssociationsPlace($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
@@ -1087,7 +1086,7 @@ declare function local:populationsAssociationsPlace($query_uri_seq) as xs:string
         )
 };
 
-declare function local:populationsAssociationsTitle($query_uri_seq) as xs:string?
+declare function local:populateAssociationsTitle($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
@@ -1115,11 +1114,11 @@ declare function local:buildEntityAssociations($query_uri_seq, $entityCModel) as
             case "info:fedora/cwrc:person-entityCModel" 
                 return local:populateAssociationsPerson($query_uri_seq)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileOrganization($query_uri_seq)
+                return local:populateAssociationsOrganization($query_uri_seq)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfilePlace($query_uri_seq)
+                return local:populateAssociationsPlace($query_uri_seq)
             case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileTitle($query_uri_seq)                
+                return local:populateAssociationsTitle($query_uri_seq)                
             default 
                 return ''
     )
@@ -1133,7 +1132,7 @@ declare function local:buildEntityAssociations($query_uri_seq, $entityCModel) as
 * Main functions  
 :)
 
-let $uri_source := local:getEntitySource($query_uri)
+let $uri_source := local:getEntitySource($ENTITY_URI)
     
 (: given a URI, find the PID to use for the profile detials :)
 (: zap trailing '/' in the uri :)
@@ -1141,7 +1140,7 @@ let $query_pid :=
     switch ($uri_source)
         case $ENTITY_SOURCE_CWRC
             return 
-                ( tokenize(replace($query_uri,'/$',''),'/')[last()] )
+                ( tokenize(replace(uri_source,'/$',''),'/')[last()] )
         default
             return
                 (
@@ -1149,9 +1148,9 @@ let $query_pid :=
                 ) 
         
 let $entityObj := cwAccessibility:queryAccessControl(/)[@pid=$query_pid]
-let $entityCModel := $obj/RELS-EXT_DS/rdf:RDF/fedora-model:hasModel/@rdf:resource/data()
+let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/fedora-model:hasModel/@rdf:resource/data()
   
-
+return
 
 (
   '{&#10;'
