@@ -17,7 +17,7 @@ declare namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 (: options :)
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 (: declare option output:method   "xml"; :)
-declare option output:method "adaptive";
+declare option output:method "text";
 declare option output:encoding "UTF-8";
 declare option output:indent   "no";
 
@@ -498,7 +498,7 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
 declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:string?
 {
   ',&#10;'
-  || "material: {"
+  || ' "material": {'
   ||
     (
     switch ( $entityCModel )
@@ -513,6 +513,7 @@ declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:
             default 
                 return ''
     )
+    || "}"
 };
 
 
@@ -1107,7 +1108,7 @@ declare function local:populateAssociationsTitle($query_uri_seq) as xs:string?
 declare function local:buildEntityAssociations($query_uri_seq, $entityCModel) as xs:string?
 {
   ',&#10;'
-  || "material: {"
+  || ' "connections": {'
   ||
     (
         switch ( $entityCModel )
@@ -1164,5 +1165,5 @@ return
   ,
   local:buildEntityAssociations($ENTITY_URI, $entityCModel)
   ,
-'}'
+'&#10;}'
 )
