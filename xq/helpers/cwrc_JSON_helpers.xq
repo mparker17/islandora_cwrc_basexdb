@@ -46,6 +46,11 @@ as xs:string?
 declare function cwJSON:outputJSONArray ($key as xs:string?, $sequence as xs:string*)
 as xs:string?
 {
-  let $tmp := string('"'||$key||'": ['||fn:string-join($sequence,"','")||']')
+  let $tmp_value :=
+      if ( not(fn:empty($sequence)) ) then 
+          '"' || fn:string-join($sequence,'","') || '"'
+      else
+          ''
+  let $tmp := string('"'||$key||'": ['||$tmp_value||']')
   return $tmp
 };
