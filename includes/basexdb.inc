@@ -13,7 +13,7 @@
 **/
 
 
-define('ISLANDORA_CWRC_BASEXDB_LIB', 'basex-api');
+//define('ISLANDORA_CWRC_BASEXDB_LIB', 'basex-api');
 
 /**
 *
