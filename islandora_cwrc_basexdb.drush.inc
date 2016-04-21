@@ -583,7 +583,7 @@ function drush_islandora_cwrc_basexdb_test_auth()
   drush_islandora_cwrc_basexdb_init ($connection);
   drush_print('user:' .  $connection->connection->username);
 
-  $pid = 'cwrc:alltag-w';
+  $pid = 'islandora:root';
 
   $obj = islandora_object_load($pid);
 

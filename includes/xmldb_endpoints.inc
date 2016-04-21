@@ -65,6 +65,7 @@ function islandora_cwrc_exec_xquery($xquery, $valArray )
 {
 
   // Include modules.
+  module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/helpers');
   module_load_include('inc', 'islandora_cwrc_basexdb', 'includes/basexdb');
   include_once(libraries_get_path(ISLANDORA_CWRC_BASEXDB_LIB) . '/BaseXClient.php');
 
