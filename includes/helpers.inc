@@ -14,9 +14,6 @@
 **/
 
 
-define('ISLANDORA_CWRC_BASEXDB_LIB', 'basex-api');
-
-
 
 /**
  * @param string @name
