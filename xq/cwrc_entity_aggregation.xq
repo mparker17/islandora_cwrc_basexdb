@@ -181,6 +181,7 @@ declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:strin
 * given a sequence of URIs, find all the material that reference that entity
 * e.g., use one of the URIs as a reference target in a given context
 :)
+(: given a person entity, build a JSON representation from the material:)
 declare function local:populateMaterialPerson($query_uri_seq) as xs:string
 {
 
@@ -258,10 +259,12 @@ declare function local:populateMaterialPerson($query_uri_seq) as xs:string
     
 };
 
+
+(: given an organization entity, build a JSON representation from the material:)
 declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
 {
 
-    (: Entries about a given person :)     
+    (: Entries about a given organization :)     
     (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)
     (: same as person "entries_about" :)
     let $entries_about :=
@@ -291,7 +294,7 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
             ]/@pid/data() 
          
  
-    (: Mentions of a given org (excluding about the given or) :)    
+    (: Mentions of a given organization (excluding about the given organization :)    
     (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:name/@valueURI) :)
     (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
     (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
@@ -342,6 +345,8 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
         )
 };
 
+
+(: given an place entity, build a JSON representation from the material:)
 declare function local:populateMaterialPlace($query_uri_seq) as xs:string
 {
     (: Entries about a given place :)     
@@ -379,7 +384,7 @@ declare function local:populateMaterialPlace($query_uri_seq) as xs:string
                 )
             ]/@pid/data()
 
-    (: bibliographic mentioning the givenplace ( :)    
+    (: bibliographic mentioning the given place  :)    
     (:  :)
     (:  :)
     let $bibliographic_related :=
@@ -419,6 +424,8 @@ declare function local:populateMaterialPlace($query_uri_seq) as xs:string
         )
 };
 
+
+(: given an title entity, build a JSON representation from the material:)
 declare function local:populateMaterialTitle($query_uri_seq) as xs:string
 {
     (: Entries about a given title :)     
@@ -966,7 +973,7 @@ declare function local:populateTitleCoMentioningPerson($query_uri_seq)
         
 };
 
-(: given a person URI - find co-mentions of organization  - see above for general definition of "co-mention":)
+(: given a title URI - find co-mentions of organization  - see above for general definition of "co-mention":)
 declare function local:populateTitleCoMentioningOrganization($query_uri_seq)
 {
     let $uris_mods :=
@@ -1079,7 +1086,6 @@ declare function local:populateAssociationsOrganization($query_uri_seq) as xs:st
         , ','
         )
 };
-
 
 declare function local:populateAssociationsPlace($query_uri_seq) as xs:string?
 {
