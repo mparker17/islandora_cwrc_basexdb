@@ -235,7 +235,7 @@ declare function local:populateMaterialPerson($query_uri_seq) as xs:string
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
             and 
                (
-                MODS_DS/mods:mods/mods:subject/(mods:subject|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
                 or 
                 MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
                 or 
@@ -265,31 +265,30 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
     (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)
     (: same as person "entries_about" :)
     let $entries_about :=
-        cwJSON:outputJSONArray ("entries_about", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/@pid/data() 
-            )
+
             
     (: bibliographic about a given organization :)    
     (: mods:subject/topic/@valueURI :)
     let $bibliographic_about :=
-        cwJSON:outputJSONArray ("bibliographic_about", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
             ]/@pid/data() 
-            )
+
             
     (: bibliographic mentioning the given organization - author/editor ( :)    
     (: unfortunately, the LC has not defined a @valueURI attribute for the /originInfo/publisher element :)
     (: mods:name/@valueURI or mods:relatedItem/name :)
     let $bibliographic_related :=
-        cwJSON:outputJSONArray ("bibliographic_related", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             MODS_DS/mods:mods/mods:name/@valueURI=$query_uri_seq
             or
             MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI=$query_uri_seq
             ]/@pid/data() 
-            )
          
  
     (: Mentions of a given org (excluding about the given or) :)    
@@ -297,7 +296,7 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
     (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
     (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
     let $entries_mentioning :=
-        cwJSON:outputJSONArray ("entries_mentioning", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and (
@@ -311,25 +310,24 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
                 MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
                 )
             ]/@pid/data()
-            )
-            
+           
     
     (: multimedia objects about the given organization :)
     (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
     info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
     let $multimedia :=
-        cwJSON:outputJSONArray ("multimedia", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
             and 
                (
-                MODS_DS/mods:mods/mods:subject/(mods:subject|mods:topic)/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
                 or 
                 MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
                 or 
                 MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
                 )
             ]/@pid/data()
-            )
+
     
     return 
         string-join(
@@ -423,30 +421,28 @@ declare function local:populateMaterialPlace($query_uri_seq) as xs:string
 
 declare function local:populateMaterialTitle($query_uri_seq) as xs:string
 {
-
     (: Entries about a given title :)     
     (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:geographic/@valueURI :)
     let $entries_about :=
-        cwJSON:outputJSONArray ("entries_about", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:titleInfo/@valueURI = $query_uri_seq
             ]/@pid/data() 
-            )
             
     (: bibliographic about a given place :)    
     (: mods:subject/topic/@valueURI :)
     let $bibliographic_about :=
-         cwJSON:outputJSONArray ("bibliographic_about", cwAccessibility:queryAccessControl(fn:collection())[
+         cwAccessibility:queryAccessControl(fn:collection())[
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
             ]/@pid/data() 
-            )
+
             
     (: Mentions of a given title (excluding about the given or) :)    
     (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
     (:  :)
     let $entries_mentioning :=
-        cwJSON:outputJSONArray ("entries_mentioning", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and (
@@ -455,20 +451,20 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
                 not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
               )
             and (
-                CWRC_DS//(tei:title/@ref/data()|TITLE/@REF)=$query_uri_seq
+                CWRC_DS//(tei:title/@ref|TITLE/@REF)=$query_uri_seq
                 or
                 CWRC_DS//(tei:note/tei:bibl/@ref|BIBCIT/@REF)=$query_uri_seq
                 or                
                 MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
                 )
             ]/@pid/data()
-            )
+
 
     (: multimedia objects about the given title :)
     (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
     info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
     let $multimedia :=
-        cwJSON:outputJSONArray ("multimedia", cwAccessibility:queryAccessControl(fn:collection())[
+        cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
             and 
                (
@@ -476,12 +472,12 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
                 or 
                 MODS_DS/mods:mods/mods:subject/mods:titleInfo/mods:title/@valueURI = $query_uri_seq
                 or
-                MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
+                MODS_DS/mods:mods/mods:name/@valueURI = $query_uri_seq
                 or 
                 MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
                 )
             ]/@pid/data()
-            )
+
         
     return 
         string-join(
@@ -521,6 +517,10 @@ declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:
     )
     || "}"
 };
+
+
+
+
 
 
 (: ************ Assocations ******************* :)
