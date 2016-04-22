@@ -460,7 +460,7 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
             and (
                 CWRC_DS//(tei:title/@ref|TITLE/@REF)=$query_uri_seq
                 or
-                CWRC_DS//(tei:note/tei:bibl/@ref|BIBCIT/@REF)=$query_uri_seq
+                CWRC_DS//(tei:note/tei:bibl/@ref|(BIBCIT|TEXTSCOPE)/@REF)=$query_uri_seq
                 or                
                 MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
                 )
@@ -964,7 +964,7 @@ declare function local:populateTitleCoMentioningPerson($query_uri_seq)
                     (ancestor::tei:event|ancestor::tei:note|ancestor::tei:p)/descendant::tei:note/bibl/@ref/data()=$query_uri_seq
                     ]/@ref
                 |
-                CWRC_DS//NAME[(ancestor::CHRONSTRUCT|ancestor::P)/descendant::BIBCIT/@REF/data()=$query_uri_seq]/@REF
+                CWRC_DS//NAME[(ancestor::CHRONSTRUCT|ancestor::P)/(descendant::BIBCIT|descendant::TEXTSCOPE)/@REF/data()=$query_uri_seq]/@REF
                 )/data()
       
       
@@ -1006,7 +1006,7 @@ declare function local:populateTitleCoMentioningOrganization($query_uri_seq)
                     (ancestor::tei:event|ancestor::tei:note|ancestor::tei:p)/descendant::tei:note/tei:bibl/@ref/data()=$query_uri_seq
                     ]/@ref
                 |
-                CWRC_DS//ORGNAME[(ancestor::CHRONSTRUCT|ancestor::P)/descendant::BIBCIT/@REF/data()=$query_uri_seq]/@REF                
+                CWRC_DS//ORGNAME[(ancestor::CHRONSTRUCT|ancestor::P)/(descendant::BIBCIT|descendant::TEXTSCOPE)/@REF/data()=$query_uri_seq]/@REF                
                 )/data()
       
       
