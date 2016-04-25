@@ -1140,6 +1140,48 @@ declare function local:buildEntityAssociations($query_uri_seq, $entityCModel) as
 };
 
 
+(: 
+* build a sequences of "sameAs" PID for a given initial entity
+* by tranversing the graph of sameAs relationships
+* and assuming not all entities will have a complete list
+* of the sameAs relationship and the relationship graph might be 
+* cyclical
+*
+* https://en.wikibooks.org/wiki/XQuery/Sequences
+* http://maxdewpoint.blogspot.ca/2011/11/xquerys-union-intersect-and-except.html
+:)
+
+declare function local:sameAsRecursive($inputSeq as xs:string+, $traversedSeq) 
+{
+  let $inputNodes := fn:collection()/obj[@pid=$inputSeq]/@pid/data()
+  
+  (: traverse incomming and outdoing links to/from the input set :)
+  let $newSeq := 
+    fn:distinct-values(
+      (
+        fn:collection()/obj[descendant::sameAs=$inputSeq]/@pid/data()
+        ,
+        fn:collection()/obj[@pid=$inputSeq]//sameAs/text()
+      )
+    )
+  (: remove the graph nodes not previously seen from the set :)
+  let $notSeenSeq := $newSeq[not(.=$traversedSeq)]
+  (: update the set of traversed nodes :)
+  let $traversedSeq := ($traversedSeq, $inputSeq)
+    
+  return
+    (: doesn't do a deep-equal just tests if at least one member is present in both sequences:)
+    (: if ( ($tmpSeq, $newSeq) != $traversedSeq ) then :)
+
+    (: if there are not previously traversed node, then recursively traverse :)    
+    (: else return the traversed set:)
+    if ( count($notSeenSeq)>0 ) then
+      local:sameAsRecursive($newSeq,$traversedSeq)
+    else
+      $traversedSeq
+};
+
+
 
 (: 
 * Main functions  
@@ -1162,6 +1204,9 @@ let $query_pid :=
         
 let $entityObj := cwAccessibility:queryAccessControl(/)[@pid=$query_pid]
 let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/fedora-model:hasModel/@rdf:resource/data()
+(: lookup the "sameAs" linked data:)
+(: let $entity_uri_set := local:sameAsRecursive( ('islandora:52663f0e-6e77-44b1-be3b-c23b70018ce2'),() ) :)
+let $entity_uri_set := local:sameAsRecursive( ($ENTITY_URI),() )
   
 return
 
@@ -1170,11 +1215,13 @@ return
   ,
   cwJSON:outputJSON("query_URI", $ENTITY_URI) 
   ,
+  cwJSON:outputJSONArray("same_as", $entity_uri_set) 
+  ,
   local:buildEntityProfile($entityObj,$entityCModel)
   ,
-  local:buildEntityMaterial($ENTITY_URI, $entityCModel)
+  local:buildEntityMaterial($entity_uri_set, $entityCModel)
   ,
-  local:buildEntityAssociations($ENTITY_URI, $entityCModel)
+  local:buildEntityAssociations($entity_uri_set, $entityCModel)
   ,
 '&#10;}'
 )
