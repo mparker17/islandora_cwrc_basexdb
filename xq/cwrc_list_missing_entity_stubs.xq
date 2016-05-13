@@ -76,6 +76,7 @@ let $titleNoExistStubs := $titleExternalURIs[not(.=$titleStubs)]
 
 
 return 
+json:serialize(
 <json type='object' objects='missingStubs'>
 <missingStubs type='array'>
 {
@@ -87,3 +88,4 @@ return
 }
 </missingStubs>
 </json>
+)
