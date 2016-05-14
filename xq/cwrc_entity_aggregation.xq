@@ -1227,8 +1227,9 @@ return
   ,
   cwJSON:outputJSONArray("same_as", $entity_uri_set) 
   ,
-  local:buildEntityProfile($entityObj,$entityCModel)
+(:  local:buildEntityProfile($entityObj,$entityCModel)
   ,
+:)
   local:buildEntityMaterial($entity_uri_set, $entityCModel)
   ,
   local:buildEntityAssociations($entity_uri_set, $entityCModel)
