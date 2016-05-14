@@ -166,10 +166,10 @@ declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:strin
                 return local:populateProfilePerson($entityObj,$entityCModel)
             case "info:fedora/cwrc:organization-entityCModel"
                 return local:populateProfileOrganization($entityObj,$entityCModel)
-            case "info:fedora/cwrc:organization-entityCModel"
+            case "info:fedora/cwrc:place-entityCModel"
                 return local:populateProfilePlace($entityObj,$entityCModel)
-            case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileTitle($entityObj,$entityCModel)                
+            case "info:fedora/cwrc:title-entityCModel"
+                return local:populateProfileTitle($entityObj,$entityCModel)  
             default 
                 return ''
 };
@@ -515,12 +515,12 @@ declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:
                 return local:populateMaterialPerson($query_uri_seq)
             case "info:fedora/cwrc:organization-entityCModel"
                 return local:populateMaterialOrganization($query_uri_seq)
-            case "info:fedora/cwrc:organization-entityCModel"
+            case "info:fedora/cwrc:place-entityCModel"
                 return local:populateMaterialPlace($query_uri_seq)
-            case "info:fedora/cwrc:organization-entityCModel"
+            case "info:fedora/cwrc:title-entityCModel"
                 return local:populateMaterialTitle($query_uri_seq)                
             default 
-                return local:populateMaterialPlace($query_uri_seq) (: QUESTION: remove? :)
+                return local:populateMaterialPerson($query_uri_seq) (: QUESTION: remove? :)
     )
     || "}"
 };
@@ -1128,12 +1128,12 @@ declare function local:buildEntityAssociations($query_uri_seq, $entityCModel) as
                 return local:populateAssociationsPerson($query_uri_seq)
             case "info:fedora/cwrc:organization-entityCModel"
                 return local:populateAssociationsOrganization($query_uri_seq)
-            case "info:fedora/cwrc:organization-entityCModel"
+            case "info:fedora/cwrc:place-entityCModel"
                 return local:populateAssociationsPlace($query_uri_seq)
-            case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateAssociationsTitle($query_uri_seq)                
+            case "info:fedora/cwrc:title-entityCModel"
+                return local:populateAssociationsTitle($query_uri_seq) 
             default 
-                return local:populateAssociationsPlace($query_uri_seq) (: QUESTION: remove? :)
+                return local:populateAssociationsPerson($query_uri_seq) (: QUESTION: remove? :)
     )
   || "}"
              
@@ -1191,6 +1191,7 @@ let $uri_source := local:getEntitySource($ENTITY_URI)
     
 (: given a URI, find the PID to use for the profile detials :)
 (: zap trailing '/' in the uri :)
+(: ToDo: set exteranl entity stub detection in the default case :)
 let $query_pid := 
     switch ($uri_source)
         case $ENTITY_SOURCE_CWRC
@@ -1199,11 +1200,14 @@ let $query_pid :=
         default
             return
                 (
-                (/obj[(PERSON_DS|ORG_DS)/(person|organization)/identity/sameAs/text()="$query_uri"])[1]/@pid/data() 
-                ) 
+                (/obj[(PERSON_DS|ORGANIZATION_DS|PLACE_DS)/entity/(person|organization|place)/recordInfo/entityId/text()=$ENTITY_URI])/@pid 
+                |
+                /obj[MODS_DS/mods:mods[mods:recordInfo/mods:recordContentSource='VIAF']/mods:identifier/text()=$ENTITY_URI]/@pid 
+                )/data() 
         
 let $entityObj := cwAccessibility:queryAccessControl(/)[@pid=$query_pid]
-let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/fedora-model:hasModel/@rdf:resource/data()
+let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()
+
 (: lookup the "sameAs" linked data:)
 (: let $entity_uri_set := local:sameAsRecursive( ('islandora:52663f0e-6e77-44b1-be3b-c23b70018ce2'),() ) :)
 let $entity_uri_set := local:sameAsRecursive( ($ENTITY_URI),() )
@@ -1214,6 +1218,12 @@ return
   '{&#10;'
   ,
   cwJSON:outputJSON("query_URI", $ENTITY_URI) 
+  ,
+  cwJSON:outputJSON("query_pid", $entityObj/@pid/data()) 
+  ,
+  cwJSON:outputJSON("LODSource", $uri_source) 
+  ,
+  cwJSON:outputJSON("cModel", $entityCModel) 
   ,
   cwJSON:outputJSONArray("same_as", $entity_uri_set) 
   ,
