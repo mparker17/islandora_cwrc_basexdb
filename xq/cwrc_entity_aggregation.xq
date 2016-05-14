@@ -1203,7 +1203,7 @@ let $query_pid :=
                 (/obj[(PERSON_DS|ORGANIZATION_DS|PLACE_DS)/entity/(person|organization|place)/recordInfo/entityId/text()=$ENTITY_URI])/@pid 
                 |
                 /obj[MODS_DS/mods:mods[mods:recordInfo/mods:recordContentSource='VIAF']/mods:identifier/text()=$ENTITY_URI]/@pid 
-                )/data() 
+                )[1]/data() (: use position to limit to only one in the event of a duplicate :)
         
 let $entityObj := cwAccessibility:queryAccessControl(/)[@pid=$query_pid]
 let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()
@@ -1219,7 +1219,7 @@ return
   ,
   cwJSON:outputJSON("query_URI", $ENTITY_URI) 
   ,
-  cwJSON:outputJSON("query_pid", $entityObj/@pid/data()) 
+  cwJSON:outputJSON("query_pid", $query_pid) 
   ,
   cwJSON:outputJSON("LODSource", $uri_source) 
   ,
