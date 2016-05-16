@@ -249,7 +249,7 @@ declare function local:populateMaterialPerson($query_uri_seq) as xs:string
         string-join(
             (
             cwJSON:outputJSONArray ("entries_about", $entries_about )
-            , cwJSON:outputJSONArray ("bilbiographic_about", $works )
+            , cwJSON:outputJSONArray ("bibliographic_about", $works )
             , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
             , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
             , cwJSON:outputJSONArray ("multimedia", $multimedia )        
