@@ -34,6 +34,7 @@ declare variable $ENTITY_URI external := ("http://www.geonames.org/6251999");
 declare variable $ENTITY_SOURCE_CWRC as xs:string := 'CWRC';
 declare variable $ENTITY_SOURCE_VIAF as xs:string := 'VIAF';
 declare variable $ENTITY_SOURCE_GEONAMES as xs:string := 'GEONAMES';
+declare variable $ENTITY_SOURCE_GOOGLE as xs:string := 'GOOGLE';
 declare variable $CMODEL_MULTIMEDIA := ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel", "info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel");
 
 (: 
@@ -48,8 +49,10 @@ declare function local:getEntitySource($query_uri) as xs:string?
         ( $ENTITY_SOURCE_CWRC )
     else if ( matches($query_uri,'viaf.org') ) then
         ( $ENTITY_SOURCE_VIAF )
-    else if ( matches($query_uri,'www.geonames.org') ) then
+    else if ( matches($query_uri,'geonames.org') ) then
         ( $ENTITY_SOURCE_GEONAMES )
+    else if ( matches($query_uri,'google.*/maps') ) then
+        ( $ENTITY_SOURCE_GOOGLE )
     else
         ( '' )
 };
