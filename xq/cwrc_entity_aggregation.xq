@@ -336,7 +336,7 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
         string-join(
             (
             cwJSON:outputJSONArray ("entries_about", $entries_about )
-            , cwJSON:outputJSONArray ("bilbiographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
             , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
             , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_related )
             , cwJSON:outputJSONArray ("multimedia", $multimedia )        
@@ -415,9 +415,9 @@ declare function local:populateMaterialPlace($query_uri_seq) as xs:string
         string-join(
             (
             cwJSON:outputJSONArray ("entries_about", $entries_about )
-            , cwJSON:outputJSONArray ("bilbiographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
             , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
-            , cwJSON:outputJSONArray ("bilbiographic_related", $bibliographic_about )
+            , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
             , cwJSON:outputJSONArray ("multimedia", $multimedia )        
             )
             , ','
@@ -490,7 +490,7 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
         string-join(
             (
             cwJSON:outputJSONArray ("entries_about", $entries_about )
-            , cwJSON:outputJSONArray ("bilbiographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
             , cwJSON:outputJSONArray ("entries_other", $entries_mentioning )
             , cwJSON:outputJSONArray ("multimedia", $multimedia )        
             )
