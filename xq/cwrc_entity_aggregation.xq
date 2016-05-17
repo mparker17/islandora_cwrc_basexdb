@@ -61,12 +61,12 @@ declare function local:getEntitySource($query_uri) as xs:string?
 declare function local:populateProfilePerson($obj,$objCModel)
 {
   ',&#10;'
-  || "profile: {"
+  || '"profile": {'
   || 
   fn:string-join(
     (
-      cwJSON:outputJSON("label", $obj/@label/data() )
-
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
       , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS//entity/person/description/factuality/text() )
       , cwJSON:outputJSONArray("genders", $obj/PERSON_DS//entity/person/description/gender/genders/text() )
       , cwJSON:outputJSONArray("activities", $obj/PERSON_DS//entity/person/description/activities/activity/text() )
@@ -80,6 +80,7 @@ declare function local:populateProfilePerson($obj,$objCModel)
       , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
       , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
       , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
     )
   )
   || '}'
@@ -90,11 +91,12 @@ declare function local:populateProfilePerson($obj,$objCModel)
 declare function local:populateProfileOrganization($obj,$objCModel)
 {
   ',&#10;'
-  || "profile: {"
+  || '"profile": {'
   || 
   fn:string-join(
     (
-      cwJSON:outputJSON("label", $obj/@label/data() )
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
       , cwJSON:outputJSONArray ("projectIDs", $obj/ORGANIZATION_DS/entity/person/recordInfo/originInfo/projectId/text() )
       , cwJSON:outputJSONNotNull("factuality", $obj/ORGANIZATION_DS/entity/person/description/factuality/text() )
       , cwJSON:outputJSONArray("genders", $obj/ORGANIZATION_DS/entity/person/description/gender/genders/text() )
@@ -102,6 +104,7 @@ declare function local:populateProfileOrganization($obj,$objCModel)
       , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
       , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
       , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
     )
   )
   || '}'
@@ -112,17 +115,19 @@ declare function local:populateProfileOrganization($obj,$objCModel)
 declare function local:populateProfilePlace($obj,$objCModel)
 {
   ',&#10;'
-  || "profile: {"
+  || '"profile": {'
   || 
   fn:string-join(
     (
-      cwJSON:outputJSON("label", $obj/@label/data() )
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
       , cwJSON:outputJSONArray ("projectIDs", $obj/PLACE_DS/entity/person/recordInfo/originInfo/projectId/text() )
       , cwJSON:outputJSONNotNull("factuality", $obj/PLACE_DS/entity/person/description/factuality/text() )
       , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
       , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
       , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
       , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
     )
   )
   || '}'
@@ -133,11 +138,12 @@ declare function local:populateProfilePlace($obj,$objCModel)
 declare function local:populateProfileTitle($obj,$objCModel)
 {
   ',&#10;'
-  || "profile: {"
+  || '"profile": {'
   || 
   fn:string-join(
     (
-      cwJSON:outputJSON("label", $obj/@label/data() )
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
       , cwJSON:outputJSONArray ("projectIDs", $obj/PERSON_DS/entity/person/recordInfo/originInfo/projectId/text() )
       , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS/entity/person/description/factuality/text() )
       , cwJSON:outputJSONArray("genders", $obj/PERSON_DS/entity/person/description/gender/genders/text() )
@@ -148,6 +154,7 @@ declare function local:populateProfileTitle($obj,$objCModel)
       , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
       , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
       , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
     )
   )
   || '}'
@@ -164,17 +171,17 @@ declare function local:populateProfileTitle($obj,$objCModel)
 declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:string?
 {
 
-        switch ( $entityCModel )
-            case "info:fedora/cwrc:person-entityCModel" 
-                return local:populateProfilePerson($entityObj,$entityCModel)
-            case "info:fedora/cwrc:organization-entityCModel"
-                return local:populateProfileOrganization($entityObj,$entityCModel)
-            case "info:fedora/cwrc:place-entityCModel"
-                return local:populateProfilePlace($entityObj,$entityCModel)
-            case "info:fedora/cwrc:title-entityCModel"
-                return local:populateProfileTitle($entityObj,$entityCModel)  
-            default 
-                return ''
+    switch ( $entityCModel )
+        case "info:fedora/cwrc:person-entityCModel" 
+            return local:populateProfilePerson($entityObj,$entityCModel)
+        case "info:fedora/cwrc:organization-entityCModel"
+            return local:populateProfileOrganization($entityObj,$entityCModel)
+        case "info:fedora/cwrc:place-entityCModel"
+            return local:populateProfilePlace($entityObj,$entityCModel)
+        case "info:fedora/cwrc:title-entityCModel"
+            return local:populateProfileTitle($entityObj,$entityCModel)  
+        default 
+            return ''
 };
 
 
@@ -1222,17 +1229,16 @@ return
   ,
   cwJSON:outputJSON("query_URI", $ENTITY_URI) 
   ,
-  cwJSON:outputJSON("query_pid", $query_pid) 
+  ',' || cwJSON:outputJSON("query_pid", $query_pid) 
   ,
-  cwJSON:outputJSON("LODSource", $uri_source) 
+  ',' || cwJSON:outputJSON("LODSource", $uri_source) 
   ,
-  cwJSON:outputJSON("cModel", $entityCModel) 
+  ',' || cwJSON:outputJSON("cModel", $entityCModel) 
   ,
-  cwJSON:outputJSONArray("same_as", $entity_uri_set) 
+  ',' || cwJSON:outputJSONArray("same_as", $entity_uri_set) 
   ,
-(:  local:buildEntityProfile($entityObj,$entityCModel)
+  local:buildEntityProfile($entityObj,$entityCModel)
   ,
-:)
   local:buildEntityMaterial($entity_uri_set, $entityCModel)
   ,
   local:buildEntityAssociations($entity_uri_set, $entityCModel)
