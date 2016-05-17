@@ -1206,7 +1206,7 @@ let $query_pid :=
     switch ($uri_source)
         case $ENTITY_SOURCE_CWRC
             return 
-                ( tokenize(replace(uri_source,'/$',''),'/')[last()] )
+                ( tokenize(replace($ENTITY_URI,'/$',''),'/')[last()] )
         default
             return
                 (
