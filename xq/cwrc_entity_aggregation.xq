@@ -1220,7 +1220,18 @@ let $entityCModel := $entityObj/RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model
 
 (: lookup the "sameAs" linked data:)
 (: let $entity_uri_set := local:sameAsRecursive( ('islandora:52663f0e-6e77-44b1-be3b-c23b70018ce2'),() ) :)
-let $entity_uri_set := local:sameAsRecursive( ($ENTITY_URI),() )
+(: ToDo:
+* 2016-05-17
+* if start with a CWRC Commons URI (e.g., http://commons.cwrc.ca/cwrc:4fa02835-34b1-4c27-bfa4-9cf978d77331
+* then the sameAs doesn't get populated by "local:sameAsRecursive"
+* because commons.cwrc.ca/{PID} is not stored within the entity object
+* this temporary kludge uses the PID to help populate teh sameAs set
+* :)
+let $entity_uri_set := 
+  if ($uri_source = $ENTITY_SOURCE_CWRC) then
+    (local:sameAsRecursive( ($ENTITY_URI,$query_pid),() ))
+  else
+    (local:sameAsRecursive( ($ENTITY_URI),() ))
   
 return
 
