@@ -61,7 +61,7 @@ declare function local:getEntitySource($query_uri) as xs:string?
 declare function local:outputJSONArray($key as xs:string?, $sequence as xs:string*) as xs:string?
 {
   let $arrayStr := local:outputURIWithLabel($sequence)
-  return string('"'||$key||'":"'||$arrayStr)
+  return string('"'||$key||'":'||$arrayStr)
 };
 
 (: given a sequence of URI's, build a JSON response that includes a label :)
