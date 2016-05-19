@@ -57,6 +57,42 @@ declare function local:getEntitySource($query_uri) as xs:string?
         ( '' )
 };
 
+
+declare function local:outputJSONArray($key as xs:string?, $sequence as xs:string*) as xs:string?
+{
+  let $arrayStr := local:outputURIWithLabel($sequence)
+  return string('"'||$key||'":"'||$arrayStr)
+};
+
+(: given a sequence of URI's, build a JSON response that includes a label :)
+(: assumes the external entities have a local stub :)
+declare function local:outputURIWithLabel($uriSeq) as xs:string?
+{
+  let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq]
+  return
+    json:serialize(
+      <json type='array'>
+      {
+        for $i in ($tmp)
+        return
+        <_ type='object'>
+        <fedoraLabel>
+        {$i/@label/data()}
+        </fedoraLabel>
+        <uri>
+        {$i/(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId/text()}
+        </uri>
+        <pid>
+        {$i/@pid/data()}
+        </pid>
+        </_>
+      }
+      </json>
+    )
+  
+};
+
+
 (: given a PERSON object XML node, fill out the Profile section of the JSON return :)
 declare function local:populateProfilePerson($obj,$objCModel)
 {
@@ -1077,7 +1113,7 @@ declare function local:populateAssociationsPerson($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
-        cwJSON:outputJSONArray("coMentionPerson", local:populatePersonCoMentioningPerson($query_uri_seq)  )
+        local:outputJSONArray("coMentionPerson", local:populatePersonCoMentioningPerson($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionOrganization", local:populatePersonCoMentioningOrganization($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionPlace",  local:populatePersonCoMentioningPlace($query_uri_seq) )
         )
@@ -1089,7 +1125,7 @@ declare function local:populateAssociationsOrganization($query_uri_seq) as xs:st
 {
     fn:string-join(
         (
-        cwJSON:outputJSONArray("coMentionPerson", local:populateOrganizationCoMentioningPerson($query_uri_seq)  )
+        local:outputJSONArray("coMentionPerson", local:populateOrganizationCoMentioningPerson($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionOrganization", local:populateOrganizationCoMentioningOrganization($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionPlace",  local:populateOrganizationCoMentioningPlace($query_uri_seq) )
         )
@@ -1101,7 +1137,7 @@ declare function local:populateAssociationsPlace($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
-        cwJSON:outputJSONArray("coMentionPerson", local:populatePlaceCoMentioningPerson($query_uri_seq)  )
+        local:outputJSONArray("coMentionPerson", local:populatePlaceCoMentioningPerson($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionOrganization", local:populatePlaceCoMentioningOrganization($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionPlace",  local:populatePlaceCoMentioningPlace($query_uri_seq) )
         )
@@ -1113,7 +1149,7 @@ declare function local:populateAssociationsTitle($query_uri_seq) as xs:string?
 {
     fn:string-join(
         (
-        cwJSON:outputJSONArray("coMentionPerson", local:populateTitleCoMentioningPerson($query_uri_seq)  )
+        local:outputJSONArray("coMentionPerson", local:populateTitleCoMentioningPerson($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionOrganization", local:populateTitleCoMentioningOrganization($query_uri_seq)  )
         , cwJSON:outputJSONArray("coMentionPlace",  local:populateTitleCoMentioningPlace($query_uri_seq) )
         )
