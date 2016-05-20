@@ -603,20 +603,20 @@ declare function local:populatePersonCoMentioningPerson($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:persName/@ref/data()|NAME/@REF/data())
-            )
+                CWRC_DS//(tei:persName/@ref|NAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:persName[
@@ -641,20 +641,20 @@ declare function local:populatePersonCoMentioningOrganization($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:orgName/@ref/data()|ORGNAME/@REF/data())
-            )
+                CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:orgName[
@@ -679,20 +679,20 @@ declare function local:populatePersonCoMentioningPlace($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:placeName/@ref/data()|PLACE/@REF/data())
-            )
+                CWRC_DS//(tei:placeName/@ref|PLACE/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:placeName[
@@ -730,20 +730,20 @@ declare function local:populateOrganizationCoMentioningPerson($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:persName/@ref/data()|NAME/@REF/data())
-            )
+                CWRC_DS//(tei:persName/@ref|NAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:persName[
@@ -768,20 +768,20 @@ declare function local:populateOrganizationCoMentioningOrganization($query_uri_s
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:orgName/@ref/data()|ORGNAME/@REF/data())
-            )
+                CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:orgName[
@@ -806,20 +806,20 @@ declare function local:populateOrganizationCoMentioningPlace($query_uri_seq)
             or
             MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:placeName/@ref/data()|PLACE/@REF/data())
-            )
+                CWRC_DS//(tei:placeName/@ref|PLACE/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:placeName[
@@ -858,20 +858,20 @@ declare function local:populatePlaceCoMentioningPerson($query_uri_seq)
             or 
             MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI/data() = $query_uri_seq
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:geograpahic/@valueURI/data() = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:persName/@ref/data()|NAME/@REF/data())
-            )
+                CWRC_DS//(tei:persName/@ref|NAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:persName[
@@ -897,20 +897,20 @@ declare function local:populatePlaceCoMentioningOrganization($query_uri_seq)
             or 
             MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:geograpahic/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:orgName/@ref/data()|ORGNAME/@REF/data())
-            )
+                CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:orgName[
@@ -937,20 +937,20 @@ declare function local:populatePlaceCoMentioningPlace($query_uri_seq)
             or 
             MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and MODS_DS/mods:mods/mods:subject/mods:geograpahic/@valueURI = $query_uri_seq
             ]/(
-                CWRC_DS//(tei:placeName/@ref/data()|PLACE/@REF/data())
-            )
+                CWRC_DS//(tei:placeName/@ref|PLACE/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:placeName[
@@ -987,20 +987,20 @@ declare function local:populateTitleCoMentioningPerson($query_uri_seq)
         cwAccessibility:queryAccessControl(fn:collection())[
             @pid/data()=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and @pid/data()=$query_uri_seq
             ]/(
-                CWRC_DS//(tei:persName/@ref/data()|NAME/@REF/data())
-            )
+                CWRC_DS//(tei:persName/@ref|NAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:persName[
@@ -1029,20 +1029,20 @@ declare function local:populateTitleCoMentioningOrganization($query_uri_seq)
         cwAccessibility:queryAccessControl(fn:collection())[
             @pid/data()=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
                 |
-                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]/data()
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and @pid/data()=$query_uri_seq
             ]/(
-                CWRC_DS//(tei:orgName/@ref/data()|ORGNAME/@REF/data())
-            )
+                CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:orgName[
@@ -1071,20 +1071,20 @@ declare function local:populateTitleCoMentioningPlace($query_uri_seq)
         cwAccessibility:queryAccessControl(fn:collection())[
             @pid/data()=$query_uri_seq 
             ]/(
-                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
                 | 
-                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]/data()
-            )
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI[data() = $query_uri_seq]
+            )/data()
     let $uris_entries_about :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
             and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
             and @pid/data()=$query_uri_seq
             ]/(
-                CWRC_DS//(tei:placeName/@ref/data()|PLACE/@REF/data())
-            )
+                CWRC_DS//(tei:placeName/@ref|PLACE/@REF)
+            )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:placeName[
@@ -1274,24 +1274,31 @@ let $entity_uri_set :=
   
 return
 
-(
-  '{&#10;'
-  ,
-  cwJSON:outputJSON("query_URI", $ENTITY_URI) 
-  ,
-  ',' || cwJSON:outputJSON("query_pid", $query_pid) 
-  ,
-  ',' || cwJSON:outputJSON("LODSource", $uri_source) 
-  ,
-  ',' || cwJSON:outputJSON("cModel", $entityCModel) 
-  ,
-  ',' || cwJSON:outputJSONArray("same_as", $entity_uri_set) 
-  ,
-  local:buildEntityProfile($entityObj,$entityCModel)
-  ,
-  local:buildEntityMaterial($entity_uri_set, $entityCModel)
-  ,
-  local:buildEntityAssociations($entity_uri_set, $entityCModel)
-  ,
-'&#10;}'
-)
+try{
+  (
+    '{&#10;'
+    ,
+    cwJSON:outputJSON("query_URI", $ENTITY_URI) 
+    ,
+    ',' || cwJSON:outputJSON("query_pid", $query_pid) 
+    ,
+    ',' || cwJSON:outputJSON("LODSource", $uri_source) 
+    ,
+    ',' || cwJSON:outputJSON("cModel", $entityCModel) 
+    ,
+    ',' || cwJSON:outputJSONArray("same_as", $entity_uri_set) 
+    ,
+    local:buildEntityProfile($entityObj,$entityCModel)
+    ,
+    local:buildEntityMaterial($entity_uri_set, $entityCModel)
+    ,
+    local:buildEntityAssociations($entity_uri_set, $entityCModel)
+    ,
+  '&#10;}'
+  )
+}
+catch *
+{
+    '{"error":"'|| $err:code || ' - ' || $err:description || '"}'
+}
+
