@@ -41,6 +41,10 @@ declare variable $CMODEL_MULTIMEDIA := ("info:fedora/islandora:sp_basic_image", 
 * Helper functions  
 :)
 
+declare function local:getPIDfromURI($uri) as xs:string?
+{
+    tokenize(replace($ENTITY_URI,'/$',''),'/')[last()] 
+};
 
 (: given an URI, determine the source e.g. cwrc, viaf, geonames, etc. :)
 declare function local:getEntitySource($query_uri) as xs:string?
@@ -70,7 +74,27 @@ declare function local:outputURISeqDetails($key as xs:string?, $sequence as xs:s
 (: assumes the external entities have a local stub :)
 declare function local:outputURIWithLabel($uriSeq) as xs:string?
 {
+  (: 
+    Kludge to account for "commons.cwrc.ca" URI not being included
+    within CWRC entities as of 2016-05-24
+  :)
+  let $kludgeSeq :=
+    for $i in ($uriSeq)
+    return
+      if ( local:getEntitySource($i) = $ENTITY_SOURCE_CWRC ) then
+        local:getPIDfromURI($i)
+      else
+        ()
+  let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq or @pid = $kludgeSeq]
+    
+  (: 
+    ToDo: add "commons.cwrc.ca" to the CWRC entities such that the 
+    following works for both commons.cwrc.ca entities and external stub 
+    entities stored locally
+  :)
+  (: before Kludge: 
   let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq]
+  :)
   return
     json:serialize(
       <json type='array'>
