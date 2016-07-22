@@ -193,7 +193,7 @@ as xs:string?
     (: TEI XML :)
     ( 
       (: TEI Place :)
-      for $placeNode in $src/tei:desc[1]/tei:placeName
+      for $placeNode in $src/tei:desc/tei:placeName
       return 
         cwPH:get_geo_code("","",$placeNode/@ref/data(),fn:normalize-space($placeNode/text()))
     )

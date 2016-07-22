@@ -250,7 +250,10 @@ declare function cwPH:getGeoCodeByIDViaCWRC ($ref as xs:string?)
 (: :)
 declare function cwPH:getGeoCodeByIDViaGoogle ($ref as xs:string?)
 {
-  let $geonameId := fn:replace($ref, 'http[s]?://www.google.ca/maps/place/([^/]*)[/]?','$1')
+  (:
+let $geonameId := fn:replace($ref, 'http[s]?://www.google.ca/maps/place/([^/]*)[/]?','$1')
+  :)
+  let $geonameId := fn:replace($ref, 'http[s]?://www.google.ca/maps/place/([^/]*).*[/]?$', '$1')
 
   let $tmp := http:send-request(
     <http:request 
