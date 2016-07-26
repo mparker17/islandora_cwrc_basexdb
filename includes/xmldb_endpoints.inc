@@ -8,6 +8,7 @@
 //define('ISLANDORA_PLOTIT_XQUERY_ID', 'test3.xq');
 define('ISLANDORA_PLOTIT_XQUERY_ID', 'cwrc_plot_it_json.xq');
 define('ISLANDORA_EAP_XQUERY_ID', 'cwrc_entity_aggregation.xq');
+define('ISLANDORA_EAP_EXTERNAL_MISSING_STUBS', 'cwrc_list_missing_entity_stubs.xq');
 
 
 /**

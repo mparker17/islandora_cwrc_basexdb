@@ -17,7 +17,7 @@ declare namespace tei =  "http://www.tei-c.org/ns/1.0";
 
 
 (
-for $ref in //CHRONSTRUCT/CHRONPROSE/PLACE/@REF | //tei:event/tei:desc[1]/tei:placeName/@ref | //mods:place/@ref
+for $ref in //CHRONSTRUCT/CHRONPROSE/PLACE/@REF | //tei:event/tei:desc/tei:placeName/@ref | //mods:place/@ref
 group by $ref
 order by $ref
 return

@@ -82,11 +82,11 @@ as xs:string?
 
 declare function local:modsBiblType($src)
 {
-  if ( $src/mods:originInfo/mods:issuance/text() eq "monographic" ) then
+  if ( $src/mods:originInfo/mods:issuance/text() = "monographic" ) then
     "monographic"
-  else if ( $src/mods:relatedItem/mods:originInfo/mods:issuance/text() eq "monographic" ) then
+  else if ( $src/mods:relatedItem/mods:originInfo/mods:issuance/text() = "monographic" ) then
     "monographic part"
-  else if ( $src/mods:relatedItem/mods:originInfo/mods:issuance/text() eq "continuing" ) then
+  else if ( $src/mods:relatedItem/mods:originInfo/mods:issuance/text() = "continuing" ) then
     "continuing"
   else
     ()
