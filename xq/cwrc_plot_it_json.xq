@@ -193,7 +193,8 @@ as xs:string?
     (: TEI XML :)
     ( 
       (: TEI Place :)
-      for $placeNode in $src/tei:desc[1]/tei:placeName
+      (: for $placeNode in $src/tei:desc[1]/tei:placeName :)
+      for $placeNode in $src/descendant-or-self::tei:placeName
       return 
         cwPH:get_geo_code("","",$placeNode/@ref/data(),fn:normalize-space($placeNode/text()))
     )
@@ -333,7 +334,7 @@ as xs:string?
     )
     else if ($type eq $TYPE_TEI) then
       (: TEI XML :)
-      ( $src//tei:label )
+      ( $src/descendant-or-self::tei:label )
     else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     (
@@ -384,7 +385,7 @@ as xs:string?
     else if ($type eq $TYPE_TEI) then
     (: TEI XML :)
     ( 
-      for $tmp in $src//tei:desc
+      for $tmp in $src//(tei:desc|tei:p)
       return 
         fn:serialize(<p>{$tmp}</p>) 
     )
