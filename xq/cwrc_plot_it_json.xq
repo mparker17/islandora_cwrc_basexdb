@@ -347,14 +347,14 @@ as xs:string?
         else
         (
           (: if no label fallback on entire contents :)
-          let $tmp := fn:string-join($src/(tei:p|tei:desc)/descendant-or-self::*/text(),' ')
-          return
+          let $tei_tmp :=  fn:normalize-space(fn:string-join($src/(tei:p|tei:desc)/descendant-or-self::*/text(),' '))
+          let $tei_substring :=
             fn:substring(
-                $tmp
-                ,1, $label_max_length+string-length(substring-before(substring($tmp, $label_max_length+1),' ')))
-(:
- $label_max_length + string-length(substring-before(substring($tmp, $label_max_length+1),' '))
-:)
+                $tei_tmp
+                ,1, $label_max_length+string-length(substring-before(substring($tei_tmp, $label_max_length+1),' '))
+                )
+          return
+            fn:concat($tei_substring, "...")
         )
       )
     )
