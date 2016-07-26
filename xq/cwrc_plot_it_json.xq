@@ -318,23 +318,46 @@ declare function local:get_label ($src, $type)
 as xs:string?
 {
   let $label_max_length := 40
-  let $tmp := normalize-space($src/descendant-or-self::CHRONSTRUCT/CHRONPROSE)
   let $label :=
   (
     if ( $type eq $TYPE_ORLANDO_CWRC) then
     (: Orlando XML :)
     ( 
-      fn:concat(
-        (: MRB: Thu 09-Apr-2015: uncommented JCA's code to prepend date for Orlando event labels :)
-        fn:string-join($src/descendant-or-self::CHRONSTRUCT/(DATE|DATERANGE|DATESTRUCT/descendant-or-self::*)/text())
-        , ": ",
-        substring($tmp, 1, $label_max_length + string-length(substring-before(substring($tmp, $label_max_length+1),' '))) 
-        , '...'
-      )
+      let $tmp := normalize-space($src/descendant-or-self::CHRONSTRUCT/CHRONPROSE)
+      return
+        fn:concat(
+          (: MRB: Thu 09-Apr-2015: uncommented JCA's code to prepend date for Orlando event labels :)
+          fn:string-join($src/descendant-or-self::CHRONSTRUCT/(DATE|DATERANGE|DATESTRUCT/descendant-or-self::*)/text())
+          , ": ",
+          substring($tmp, 1, $label_max_length + string-length(substring-before(substring($tmp, $label_max_length+1),' '))) 
+          , '...'
+        )
     )
     else if ($type eq $TYPE_TEI) then
       (: TEI XML :)
+      (:
       ( $src/descendant-or-self::tei:label )
+      :)
+    (
+      let $tei_label := $src/descendant-or-self::tei:label[1]
+      return
+      (
+        if ($tei_label) then
+          $tei_label
+        else
+        (
+          (: if no label fallback on entire contents :)
+          let $tmp := fn:string-join($src/(tei:p|tei:desc)/descendant-or-self::*/text(),' ')
+          return
+            fn:substring(
+                $tmp
+                ,1, $label_max_length+string-length(substring-before(substring($tmp, $label_max_length+1),' ')))
+(:
+ $label_max_length + string-length(substring-before(substring($tmp, $label_max_length+1),' '))
+:)
+        )
+      )
+    )
     else if ($type eq $TYPE_MODS) then
     (: MODS XML :)
     (
