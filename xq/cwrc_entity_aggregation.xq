@@ -275,14 +275,13 @@ declare function local:populateMaterialPerson($query_uri_seq) as xs:string
             
             
     (: Mentions of a given person (excluding about the given person) :)    
-    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:name/@valueURI) :)
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
     (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
     (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
     let $entries_mentioning :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-            and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
-            and (
+            and ( (: exclude items about the given person :)
                 MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
                 or
                 not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
@@ -368,14 +367,13 @@ declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
          
  
     (: Mentions of a given organization (excluding about the given organization :)    
-    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:name/@valueURI) :)
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
     (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
     (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
     let $entries_mentioning :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-            and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
-            and (
+            and ( (: exclude items about the given organization :)
                 MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
                 or
                 not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
@@ -439,13 +437,12 @@ declare function local:populateMaterialPlace($query_uri_seq) as xs:string
             ]/@pid/data() 
 
     (: Mentions of a given place (excluding about the given or) :)    
-    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
     (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/(geographic|topic)/@valueURI :)
     let $entries_mentioning :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-            and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") (: QUESTION: does this make sense? :)
-            and (
+            and ( (: exclude items about the given place:)
                 MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
                 or 
                 not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
@@ -519,13 +516,11 @@ declare function local:populateMaterialTitle($query_uri_seq) as xs:string
 
             
     (: Mentions of a given title (excluding about the given or) :)    
-    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
-    (:  :)
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
     let $entries_mentioning :=
         cwAccessibility:queryAccessControl(fn:collection())[
             RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-            and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
-            and (
+            and ( (: exclude items about the given title :)
                 MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
                 or
                 not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
