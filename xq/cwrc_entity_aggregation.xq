@@ -262,7 +262,7 @@
       (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)      
       let $entries_about :=  cwAccessibility:queryAccessControl(fn:collection())[
               RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") 
+              and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital", "born digital", "Born Digital") 
               and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
               ]/@pid/data()
               
