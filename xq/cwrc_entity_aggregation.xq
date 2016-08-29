@@ -1,641 +1,641 @@
-  (: output JSON used to build an Entity Aggregation page :)
+(: output JSON used to build an Entity Aggregation page :)
 
-  xquery version "3.0" encoding "utf-8";
+xquery version "3.0" encoding "utf-8";
 
-  (: import helper modules :)
-  import module namespace cwAccessibility="cwAccessibility" at "./islandora_access_control.xq"; (: Fedora XACML permissions :)
-  import module namespace cwJSON="cwJSONHelpers" at "./helpers/cwrc_JSON_helpers.xq"; (: common JSON functions :)
+(: import helper modules :)
+import module namespace cwAccessibility="cwAccessibility" at "./islandora_access_control.xq"; (: Fedora XACML permissions :)
+import module namespace cwJSON="cwJSONHelpers" at "./helpers/cwrc_JSON_helpers.xq"; (: common JSON functions :)
 
 
-  (: declare namespaces used in the content :)
-  declare namespace mods = "http://www.loc.gov/mods/v3";
-  declare namespace tei =  "http://www.tei-c.org/ns/1.0";
-  declare namespace fedora =  "info:fedora/fedora-system:def/relations-external#";
-  declare namespace fedora-model="info:fedora/fedora-system:def/model#"; 
-  declare namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+(: declare namespaces used in the content :)
+declare namespace mods = "http://www.loc.gov/mods/v3";
+declare namespace tei =  "http://www.tei-c.org/ns/1.0";
+declare namespace fedora =  "info:fedora/fedora-system:def/relations-external#";
+declare namespace fedora-model="info:fedora/fedora-system:def/model#"; 
+declare namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
-  (: options :)
-  declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
-  (: declare option output:method   "xml"; :)
-  declare option output:method "text";
-  declare option output:encoding "UTF-8";
-  declare option output:indent   "no";
+(: options :)
+declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+(: declare option output:method   "xml"; :)
+declare option output:method "text";
+declare option output:encoding "UTF-8";
+declare option output:indent   "no";
 
-  (: declare boundary-space preserve; :)
-  (: database must be imported with the following option otherwise text nodes have the begining and ending whitespace "chopped off" which is undesireable for mixed content:)
-  declare option db:chop 'false';
+(: declare boundary-space preserve; :)
+(: database must be imported with the following option otherwise text nodes have the begining and ending whitespace "chopped off" which is undesireable for mixed content:)
+declare option db:chop 'false';
 
-  (: external variables :)
-  declare variable $FEDORA_PID external := "";
-  declare variable $BASE_URL external := "";
-  declare variable $ENTITY_URI external := ("http://www.geonames.org/6251999");
+(: external variables :)
+declare variable $FEDORA_PID external := "";
+declare variable $BASE_URL external := "";
+declare variable $ENTITY_URI external := ("http://www.geonames.org/6251999");
 
-  (: internal constants :)
-  declare variable $ENTITY_SOURCE_CWRC as xs:string := 'CWRC';
-  declare variable $ENTITY_SOURCE_VIAF as xs:string := 'VIAF';
-  declare variable $ENTITY_SOURCE_GEONAMES as xs:string := 'GEONAMES';
-  declare variable $ENTITY_SOURCE_GOOGLE as xs:string := 'GOOGLE';
-  declare variable $CMODEL_MULTIMEDIA := ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel", "info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel");
+(: internal constants :)
+declare variable $ENTITY_SOURCE_CWRC as xs:string := 'CWRC';
+declare variable $ENTITY_SOURCE_VIAF as xs:string := 'VIAF';
+declare variable $ENTITY_SOURCE_GEONAMES as xs:string := 'GEONAMES';
+declare variable $ENTITY_SOURCE_GOOGLE as xs:string := 'GOOGLE';
+declare variable $CMODEL_MULTIMEDIA := ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel", "info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel");
 
+(: 
+* Helper functions  
+:)
+
+declare function local:getPIDfromURI($uri) as xs:string?
+{
+    tokenize(replace($ENTITY_URI,'/$',''),'/')[last()] 
+};
+
+(: given an URI, determine the source e.g. cwrc, viaf, geonames, etc. :)
+declare function local:getEntitySource($query_uri) as xs:string?
+{
+    if ( matches($query_uri,'cwrc.ca') ) then
+        ( $ENTITY_SOURCE_CWRC )
+    else if ( matches($query_uri,'viaf.org') ) then
+        ( $ENTITY_SOURCE_VIAF )
+    else if ( matches($query_uri,'geonames.org') ) then
+        ( $ENTITY_SOURCE_GEONAMES )
+    else if ( matches($query_uri,'google.*/maps') ) then
+        ( $ENTITY_SOURCE_GOOGLE )
+    else
+        ( '' )
+};
+
+
+(: given a sequence of URIs, lookup thier details and return JSON :)
+declare function local:outputURISeqDetails($key as xs:string?, $sequence as xs:string*) as xs:string?
+{
+  let $arrayStr := local:outputURIWithLabel($sequence)
+  return string('"'||$key||'":'||$arrayStr)
+};
+
+
+(: given a sequence of URI's, build a JSON response that includes a label :)
+(: assumes the external entities have a local stub :)
+declare function local:outputURIWithLabel($uriSeq) as xs:string?
+{
   (: 
-  * Helper functions  
+    Kludge to account for "commons.cwrc.ca" URI not being included
+    within CWRC entities as of 2016-05-24
   :)
-
-  declare function local:getPIDfromURI($uri) as xs:string?
-  {
-      tokenize(replace($ENTITY_URI,'/$',''),'/')[last()] 
-  };
-
-  (: given an URI, determine the source e.g. cwrc, viaf, geonames, etc. :)
-  declare function local:getEntitySource($query_uri) as xs:string?
-  {
-      if ( matches($query_uri,'cwrc.ca') ) then
-          ( $ENTITY_SOURCE_CWRC )
-      else if ( matches($query_uri,'viaf.org') ) then
-          ( $ENTITY_SOURCE_VIAF )
-      else if ( matches($query_uri,'geonames.org') ) then
-          ( $ENTITY_SOURCE_GEONAMES )
-      else if ( matches($query_uri,'google.*/maps') ) then
-          ( $ENTITY_SOURCE_GOOGLE )
-      else
-          ( '' )
-  };
-
-
-  (: given a sequence of URIs, lookup thier details and return JSON :)
-  declare function local:outputURISeqDetails($key as xs:string?, $sequence as xs:string*) as xs:string?
-  {
-    let $arrayStr := local:outputURIWithLabel($sequence)
-    return string('"'||$key||'":'||$arrayStr)
-  };
-
-
-  (: given a sequence of URI's, build a JSON response that includes a label :)
-  (: assumes the external entities have a local stub :)
-  declare function local:outputURIWithLabel($uriSeq) as xs:string?
-  {
-    (: 
-      Kludge to account for "commons.cwrc.ca" URI not being included
-      within CWRC entities as of 2016-05-24
-    :)
-    let $kludgeSeq :=
-      for $i in ($uriSeq)
-      return
-        if ( local:getEntitySource($i) = $ENTITY_SOURCE_CWRC ) then
-          local:getPIDfromURI($i)
-        else
-          ()
-    let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq or @pid = $kludgeSeq]
-      
-    (: 
-      ToDo: add "commons.cwrc.ca" to the CWRC entities such that the 
-      following works for both commons.cwrc.ca entities and external stub 
-      entities stored locally
-    :)
-    (: before Kludge: 
-    let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq]
-    :)
+  let $kludgeSeq :=
+    for $i in ($uriSeq)
     return
-      json:serialize(
-        <json type='array'>
-        {
-          for $i in ($tmp)
-          return
-          <_ type='object'>
-          <fedoraLabel>
-          {$i/@label/data()}
-          </fedoraLabel>
-          <uri>
-          {$i/(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId/text()}
-          </uri>
-          <pid>
-          {$i/@pid/data()}
-          </pid>
-          </_>
-        }
-        </json>
-        , map { 'indent':false()}
-      )
+      if ( local:getEntitySource($i) = $ENTITY_SOURCE_CWRC ) then
+        local:getPIDfromURI($i)
+      else
+        ()
+  let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq or @pid = $kludgeSeq]
     
-  };
-
-
-  (: given a PERSON object XML node, fill out the Profile section of the JSON return :)
-  declare function local:populateProfilePerson($obj,$objCModel)
-  {
-    ',&#10;'
-    || '"profile": {'
-    || 
-    fn:string-join(
-      (
-        cwJSON:outputJSON("fedora_label", $obj/@label/data() )
-  (:
-        , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS//entity/person/description/factuality/text() )
-        , cwJSON:outputJSONArray("genders", $obj/PERSON_DS//entity/person/description/gender/genders/text() )
-        , cwJSON:outputJSONArray("activities", $obj/PERSON_DS//entity/person/description/activities/activity/text() )
-        , cwJSON:outputJSONArray("interests", $obj/PERSON_DS//entity/person/description/researchInterests/interest/text() )
-        , cwJSON:outputJSONArray("occupations", $obj/PERSON_DS//entity/person/description/occupations/occupation/text() )
-        , cwJSON:outputJSONArray("resources", $obj/PERSON_DS//entity/person/description/relatedResources/resource/text() )
-        , cwJSON:outputJSONArray("personTypes", $obj/PERSON_DS//entity/person/relatedInfor/personTypes/personType/text() )
-        , cwJSON:outputJSONArray ("projectIDs", $obj/PERSON_DS//entity/person/recordInfo/originInfo/projectId/text() )      
-        , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
-        , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
-        , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
-        , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
-        , cwJSON:outputJSONNotNull("cModel", $objCModel )      
-  :)
-      )
-    )
-    || '}'
-  };
-
-
-  (: given an ORGANIZATION object XML node, fill out the Profile section of the JSON return :)
-  declare function local:populateProfileOrganization($obj,$objCModel)
-  {
-    ',&#10;'
-    || '"profile": {'
-    || 
-    fn:string-join(
-      (
-        cwJSON:outputJSON("fedora_label", $obj/@label/data() )
-  (:
-        , cwJSON:outputJSONArray ("projectIDs", $obj/ORGANIZATION_DS/entity/person/recordInfo/originInfo/projectId/text() )
-        , cwJSON:outputJSONNotNull("factuality", $obj/ORGANIZATION_DS/entity/person/description/factuality/text() )
-        , cwJSON:outputJSONArray("genders", $obj/ORGANIZATION_DS/entity/person/description/gender/genders/text() )
-        , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
-        , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
-        , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
-        , cwJSON:outputJSONNotNull("cModel", $objCModel )      
-  :)
-      )
-    )
-    || '}'
-  };
-
-
-  (: given an PLACE object XML node, fill out the Profile section of the JSON return :)
-  declare function local:populateProfilePlace($obj,$objCModel)
-  {
-    ',&#10;'
-    || '"profile": {'
-    || 
-    fn:string-join(
-      (
-        cwJSON:outputJSON("fedora_label", $obj/@label/data() )
-  (:
-        , cwJSON:outputJSONArray ("projectIDs", $obj/PLACE_DS/entity/person/recordInfo/originInfo/projectId/text() )
-        , cwJSON:outputJSONNotNull("factuality", $obj/PLACE_DS/entity/person/description/factuality/text() )
-        , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
-        , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
-        , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
-        , cwJSON:outputJSONNotNull("cModel", $objCModel )      
-  :)
-      )
-    )
-    || '}'
-  };
-
-
-  (: given an TITLE object XML node, fill out the Profile section of the JSON return :)
-  declare function local:populateProfileTitle($obj,$objCModel)
-  {
-    ',&#10;'
-    || '"profile": {'
-    || 
-    fn:string-join(
-      (
-        cwJSON:outputJSON("fedora_label", $obj/@label/data() )
-  (:
-        , cwJSON:outputJSONArray ("projectIDs", $obj/PERSON_DS/entity/person/recordInfo/originInfo/projectId/text() )
-        , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS/entity/person/description/factuality/text() )
-        , cwJSON:outputJSONArray("genders", $obj/PERSON_DS/entity/person/description/gender/genders/text() )
-        , cwJSON:outputJSONArray("occupations", $obj/PERSON_DS/entity/person/description/occupations/occupation/text() )
-        , cwJSON:outputJSONArray("activities", $obj/PERSON_DS/entity/person/description/activities/activity/text() )      
-        , cwJSON:outputJSONArray("interests", $obj/PERSON_DS/entity/person/description/researchInterests/interest/text() )      
-        , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
-        , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
-        , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
-        , cwJSON:outputJSONNotNull("cModel", $objCModel )      
-  :)
-      )
-    )
-    || '}'
-  };
-
-
-
-
   (: 
-  * Build the entity profile components for a given entity URI and return a JSON result
-  * E.G. name, gender, etc.
-  * base on the cModel of the given URI
+    ToDo: add "commons.cwrc.ca" to the CWRC entities such that the 
+    following works for both commons.cwrc.ca entities and external stub 
+    entities stored locally
   :)
-  declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:string?
-  {
-
-      switch ( $entityCModel )
-          case "info:fedora/cwrc:person-entityCModel" 
-              return local:populateProfilePerson($entityObj,$entityCModel)
-          case "info:fedora/cwrc:organization-entityCModel"
-              return local:populateProfileOrganization($entityObj,$entityCModel)
-          case "info:fedora/cwrc:place-entityCModel"
-              return local:populateProfilePlace($entityObj,$entityCModel)
-          case "info:fedora/cwrc:title-entityCModel"
-              return local:populateProfileTitle($entityObj,$entityCModel)  
-          default 
-              return ''
-  };
-
-
-  (: **************** Material section ********************** :)
-
-  (:
-  * given a sequence of URIs, find all the material that reference that entity
-  * e.g., use one of the URIs as a reference target in a given context
+  (: before Kludge: 
+  let $tmp := collection()/obj[(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId = $uriSeq]
   :)
-  (: given a person entity, build a JSON representation from the material:)
-  declare function local:populateMaterialPerson($query_uri_seq) as xs:string
-  {
-
-      (: Entries about a given person :)
-      (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)      
-      let $entries_about :=  cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital", "born digital", "Born Digital") 
-              and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
-              ]/@pid/data()
-              
-      (: Works of the given person :)
-      (: mods:name/@valueURI :)
-      let $works :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:name/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-              
-              
-      (: Mentions of a given person (excluding about the given person) :)    
-      (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
-      (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
-      (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
-      let $entries_mentioning :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and ( (: exclude items about the given person :)
-                  MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
-                  or
-                  not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
-                )
-              and (
-                  CWRC_DS//(tei:persName/@ref|NAME/@REF)=$query_uri_seq
-                  or
-                  MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-                  )
-              ]/@pid/data()
-              
-      (: bibliographic about the given person :) 
-      (: mods:subject/mods:name/@valueURI :)
-      let $bibliographic_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq]/@pid/data() 
-              
-              
-      (: multimedia objects about the given person :)
-      (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",     
-          "info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
-      let $multimedia :=
-        cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
-              and 
-                (
-                  MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
-                  )
-              ]/@pid/data()
-                    
-      
-      return 
-          string-join(
-              (
-              cwJSON:outputJSONArray ("entries_about", $entries_about )
-              , cwJSON:outputJSONArray ("bibliographic_about", $works )
-              , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
-              , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
-              , cwJSON:outputJSONArray ("multimedia", $multimedia )        
-              )
-              , ','
-          )    
-      
-  };
-
-
-  (: given an organization entity, build a JSON representation from the material:)
-  declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
-  {
-
-      (: Entries about a given organization :)     
-      (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)
-      (: same as person "entries_about" :)
-      let $entries_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
-              and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
-              ]/@pid/data() 
-
-              
-      (: bibliographic about a given organization :)    
-      (: mods:subject/topic/@valueURI :)
-      let $bibliographic_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-
-              
-      (: bibliographic mentioning the given organization - author/editor ( :)    
-      (: unfortunately, the LC has not defined a @valueURI attribute for the /originInfo/publisher element :)
-      (: mods:name/@valueURI or mods:relatedItem/name :)
-      let $bibliographic_related :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:name/@valueURI=$query_uri_seq
-              or
-              MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-          
+  return
+    json:serialize(
+      <json type='array'>
+      {
+        for $i in ($tmp)
+        return
+        <_ type='object'>
+        <fedoraLabel>
+        {$i/@label/data()}
+        </fedoraLabel>
+        <uri>
+        {$i/(PERSON_DS|PLACE_DS|ORGANIZATION_DS)/entity/(person|place|organization)/recordInfo/entityId/text()}
+        </uri>
+        <pid>
+        {$i/@pid/data()}
+        </pid>
+        </_>
+      }
+      </json>
+      , map { 'indent':false()}
+    )
   
-      (: Mentions of a given organization (excluding about the given organization :)    
-      (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
-      (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
-      (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
-      let $entries_mentioning :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and ( (: exclude items about the given organization :)
-                  MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
-                  or
-                  not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
-              ) 
-              and (
-                  CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)=$query_uri_seq
-                  or
-                  MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-                  )
-              ]/@pid/data()
-            
-      
-      (: multimedia objects about the given organization :)
-      (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
-      info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
-      let $multimedia :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
-              and 
-                (
-                  MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
-                  )
-              ]/@pid/data()
-
-      
-      return 
-          string-join(
-              (
-              cwJSON:outputJSONArray ("entries_about", $entries_about )
-              , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
-              , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
-              , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_related )
-              , cwJSON:outputJSONArray ("multimedia", $multimedia )        
-              )
-              , ','
-          )
-  };
+};
 
 
-  (: given an place entity, build a JSON representation from the material:)
-  declare function local:populateMaterialPlace($query_uri_seq) as xs:string
-  {
-      (: Entries about a given place :)     
-      (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:geographic/@valueURI :)
-      let $entries_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
-              and MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI = $query_uri_seq
-              ]/@pid/data() 
-              
-      (: bibliographic about a given place :)    
-      (: mods:subject/topic/@valueURI :)
-      let $bibliographic_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-
-      (: Mentions of a given place (excluding about the given or) :)    
-      (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
-      (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/(geographic|topic)/@valueURI :)
-      let $entries_mentioning :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and ( (: exclude items about the given place:)
-                  MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
-                  or 
-                  not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
-                )
-              and (
-                  CWRC_DS//(tei:placeName/@ref|PLACE/@REF)/data()=$query_uri_seq
-                  or
-                  MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-                  )
-              ]/@pid/data()
-
-      (: bibliographic mentioning the given place  :)    
-      (:  :)
-      (:  :)
-      let $bibliographic_related :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:originInfo/mods:place/@valueURI=$query_uri_seq
-              or
-              MODS_DS/mods:mods/mods:relatedItem/mods:orginInfo/mods:place/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-          
-
-      (: multimedia objects about the given ploace :)
-      (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
-      info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
-      let $multimedia :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
-              and 
-                (
-                  MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq                
-                  )
-              ]/@pid/data()
-              
-      return 
-          string-join(
-              (
-              cwJSON:outputJSONArray ("entries_about", $entries_about )
-              , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
-              , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
-              , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
-              , cwJSON:outputJSONArray ("multimedia", $multimedia )        
-              )
-              , ','
-          )
-  };
+(: given a PERSON object XML node, fill out the Profile section of the JSON return :)
+declare function local:populateProfilePerson($obj,$objCModel)
+{
+  ',&#10;'
+  || '"profile": {'
+  || 
+  fn:string-join(
+    (
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
+      , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS//entity/person/description/factuality/text() )
+      , cwJSON:outputJSONArray("genders", $obj/PERSON_DS//entity/person/description/gender/genders/text() )
+      , cwJSON:outputJSONArray("activities", $obj/PERSON_DS//entity/person/description/activities/activity/text() )
+      , cwJSON:outputJSONArray("interests", $obj/PERSON_DS//entity/person/description/researchInterests/interest/text() )
+      , cwJSON:outputJSONArray("occupations", $obj/PERSON_DS//entity/person/description/occupations/occupation/text() )
+      , cwJSON:outputJSONArray("resources", $obj/PERSON_DS//entity/person/description/relatedResources/resource/text() )
+      , cwJSON:outputJSONArray("personTypes", $obj/PERSON_DS//entity/person/relatedInfor/personTypes/personType/text() )
+      , cwJSON:outputJSONArray ("projectIDs", $obj/PERSON_DS//entity/person/recordInfo/originInfo/projectId/text() )      
+      , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
+      , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
+      , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
+      , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )      
+      , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
+    )
+  )
+  || '}'
+};
 
 
-  (: given an title entity, build a JSON representation from the material:)
-  declare function local:populateMaterialTitle($query_uri_seq) as xs:string
-  {
-      (: Entries about a given title :)     
-      (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:geographic/@valueURI :)
-      let $entries_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
-              and MODS_DS/mods:mods/mods:subject/mods:titleInfo/@valueURI = $query_uri_seq
-              ]/@pid/data() 
-              
-      (: bibliographic about a given place :)    
-      (: mods:subject/topic/@valueURI :)
-      let $bibliographic_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-              ]/@pid/data() 
-
-              
-      (: Mentions of a given title (excluding about the given or) :)    
-      (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
-      let $entries_mentioning :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              and ( (: exclude items about the given title :)
-                  MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
-                  or
-                  not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
-                )
-              and (
-                  CWRC_DS//(tei:title/@ref|TITLE/@REF)=$query_uri_seq
-                  or
-                  CWRC_DS//(tei:note/tei:bibl/@ref|(BIBCIT|TEXTSCOPE)/@REF)=$query_uri_seq
-                  or                
-                  MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
-                  )
-              ]/@pid/data()
+(: given an ORGANIZATION object XML node, fill out the Profile section of the JSON return :)
+declare function local:populateProfileOrganization($obj,$objCModel)
+{
+  ',&#10;'
+  || '"profile": {'
+  || 
+  fn:string-join(
+    (
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
+      , cwJSON:outputJSONArray ("projectIDs", $obj/ORGANIZATION_DS/entity/person/recordInfo/originInfo/projectId/text() )
+      , cwJSON:outputJSONNotNull("factuality", $obj/ORGANIZATION_DS/entity/person/description/factuality/text() )
+      , cwJSON:outputJSONArray("genders", $obj/ORGANIZATION_DS/entity/person/description/gender/genders/text() )
+      , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
+      , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
+      , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
+      , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
+    )
+  )
+  || '}'
+};
 
 
-      (: multimedia objects about the given title :)
-      (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
-      info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
-      let $multimedia :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
-              and 
-                (
-                  MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:subject/mods:titleInfo/mods:title/@valueURI = $query_uri_seq
-                  or
-                  MODS_DS/mods:mods/mods:name/@valueURI = $query_uri_seq
-                  or 
-                  MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
-                  )
-              ]/@pid/data()
-
-          
-      return 
-          string-join(
-              (
-              cwJSON:outputJSONArray ("entries_about", $entries_about )
-              , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
-              , cwJSON:outputJSONArray ("entries_other", $entries_mentioning )
-              , cwJSON:outputJSONArray ("multimedia", $multimedia )        
-              )
-              , ','
-          )
-  };
+(: given an PLACE object XML node, fill out the Profile section of the JSON return :)
+declare function local:populateProfilePlace($obj,$objCModel)
+{
+  ',&#10;'
+  || '"profile": {'
+  || 
+  fn:string-join(
+    (
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
+      , cwJSON:outputJSONArray ("projectIDs", $obj/PLACE_DS/entity/person/recordInfo/originInfo/projectId/text() )
+      , cwJSON:outputJSONNotNull("factuality", $obj/PLACE_DS/entity/person/description/factuality/text() )
+      , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
+      , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
+      , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
+      , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
+    )
+  )
+  || '}'
+};
 
 
-
-  (: 
-  * Build the entity material components ( for a given entity URI and return a JSON result
-  * E.G., entires, oeuvre, multimedia, etc.)
-  :)
-  declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:string?
-  {
-    ',&#10;'
-    || ' "material": {'
-    ||
-      (
-      switch ( $entityCModel )
-              case "info:fedora/cwrc:person-entityCModel" 
-                  return local:populateMaterialPerson($query_uri_seq)
-              case "info:fedora/cwrc:organization-entityCModel"
-                  return local:populateMaterialOrganization($query_uri_seq)
-              case "info:fedora/cwrc:place-entityCModel"
-                  return local:populateMaterialPlace($query_uri_seq)
-              case "info:fedora/cwrc:title-entityCModel"
-                  return local:populateMaterialTitle($query_uri_seq)                
-              default 
-                  return local:populateMaterialPerson($query_uri_seq) (: QUESTION: remove? :)
-      )
-      || "}"
-  };
+(: given an TITLE object XML node, fill out the Profile section of the JSON return :)
+declare function local:populateProfileTitle($obj,$objCModel)
+{
+  ',&#10;'
+  || '"profile": {'
+  || 
+  fn:string-join(
+    (
+      cwJSON:outputJSON("fedora_label", $obj/@label/data() )
+(:
+      , cwJSON:outputJSONArray ("projectIDs", $obj/PERSON_DS/entity/person/recordInfo/originInfo/projectId/text() )
+      , cwJSON:outputJSONNotNull("factuality", $obj/PERSON_DS/entity/person/description/factuality/text() )
+      , cwJSON:outputJSONArray("genders", $obj/PERSON_DS/entity/person/description/gender/genders/text() )
+      , cwJSON:outputJSONArray("occupations", $obj/PERSON_DS/entity/person/description/occupations/occupation/text() )
+      , cwJSON:outputJSONArray("activities", $obj/PERSON_DS/entity/person/description/activities/activity/text() )      
+      , cwJSON:outputJSONArray("interests", $obj/PERSON_DS/entity/person/description/researchInterests/interest/text() )      
+      , cwJSON:outputJSONNotNull("pid", $obj/@pid/data() )
+      , cwJSON:outputJSONNotNull("createDate", $obj/@createDate/data() )
+      , cwJSON:outputJSONNotNull("modifiedDate", $obj/@modifiedDate/data() )
+      , cwJSON:outputJSONNotNull("cModel", $objCModel )      
+:)
+    )
+  )
+  || '}'
+};
 
 
 
 
+(: 
+* Build the entity profile components for a given entity URI and return a JSON result
+* E.G. name, gender, etc.
+* base on the cModel of the given URI
+:)
+declare function local:buildEntityProfile($entityObj, $entityCModel) as xs:string?
+{
+
+    switch ( $entityCModel )
+        case "info:fedora/cwrc:person-entityCModel" 
+            return local:populateProfilePerson($entityObj,$entityCModel)
+        case "info:fedora/cwrc:organization-entityCModel"
+            return local:populateProfileOrganization($entityObj,$entityCModel)
+        case "info:fedora/cwrc:place-entityCModel"
+            return local:populateProfilePlace($entityObj,$entityCModel)
+        case "info:fedora/cwrc:title-entityCModel"
+            return local:populateProfileTitle($entityObj,$entityCModel)  
+        default 
+            return ''
+};
 
 
-  (: ************ Assocations ******************* :)
+(: **************** Material section ********************** :)
 
-  (:
-  Co-mentions (associations) logic: (i.e. definition of co-mentions)
-  Main entity (entity for which the EAP is being built) → mentioned in the MODS datastream of an object
-  List all the other entities referenced in that MODS datastream
-  Entity mentioned in the object datastream of a CWRCDocument cModel object
-  If:
-  CWRC Document cModel object meets the criteria to be labeled as the entry associated with the main entity → list all entities referenced in that entry
-  Else:
-  → list only the entities referenced in the same chronstruct (CWRC, orlando)/tei:event/p/tei:note/ with the main entity
+(:
+* given a sequence of URIs, find all the material that reference that entity
+* e.g., use one of the URIs as a reference target in a given context
+:)
+(: given a person entity, build a JSON representation from the material:)
+declare function local:populateMaterialPerson($query_uri_seq) as xs:string
+{
 
-  :)
-
-
-  (: given a person URI - find co-mentions of person  - see above for general definition of "co-mention":)
-  declare function local:populatePersonCoMentioningPerson($query_uri_seq)
-  {
-      let $uris_mods :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              MODS_DS/mods:mods/mods:subject/mods:name/@valueURI=$query_uri_seq
-              or
-              MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
-              ]/(
-                  MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
-                  |
-                  MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
-                  | 
-                  MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
-              )/data()
-      let $uris_entries_about :=
-          cwAccessibility:queryAccessControl(fn:collection())[
-              RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
-              (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") :)
+    (: Entries about a given person :)
+    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)      
+    let $entries_about :=  cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital", "born digital", "Born Digital") 
             and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
+            ]/@pid/data()
+            
+    (: Works of the given person :)
+    (: mods:name/@valueURI :)
+    let $works :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:name/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+            
+            
+    (: Mentions of a given person (excluding about the given person) :)    
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
+    (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
+    (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
+    let $entries_mentioning :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            and ( (: exclude items about the given person :)
+                MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
+                or
+                not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
+              )
+            and (
+                CWRC_DS//(tei:persName/@ref|NAME/@REF)=$query_uri_seq
+                or
+                MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+                )
+            ]/@pid/data()
+            
+    (: bibliographic about the given person :) 
+    (: mods:subject/mods:name/@valueURI :)
+    let $bibliographic_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq]/@pid/data() 
+            
+            
+    (: multimedia objects about the given person :)
+    (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",     
+        "info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
+    let $multimedia :=
+      cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
+            and 
+              (
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
+                )
+            ]/@pid/data()
+                  
+    
+    return 
+        string-join(
+            (
+            cwJSON:outputJSONArray ("entries_about", $entries_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $works )
+            , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
+            , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
+            , cwJSON:outputJSONArray ("multimedia", $multimedia )        
+            )
+            , ','
+        )    
+    
+};
+
+
+(: given an organization entity, build a JSON representation from the material:)
+declare function local:populateMaterialOrganization($query_uri_seq) as xs:string
+{
+
+    (: Entries about a given organization :)     
+    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:name/@valueURI :)
+    (: same as person "entries_about" :)
+    let $entries_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
+            and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
+            ]/@pid/data() 
+
+            
+    (: bibliographic about a given organization :)    
+    (: mods:subject/topic/@valueURI :)
+    let $bibliographic_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+
+            
+    (: bibliographic mentioning the given organization - author/editor ( :)    
+    (: unfortunately, the LC has not defined a @valueURI attribute for the /originInfo/publisher element :)
+    (: mods:name/@valueURI or mods:relatedItem/name :)
+    let $bibliographic_related :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:name/@valueURI=$query_uri_seq
+            or
+            MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+        
+
+    (: Mentions of a given organization (excluding about the given organization :)    
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:name/@valueURI) :)
+    (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/topic/@valueURI :)
+    (: QUESTION: does look into the "content" datastream i.e. TEI/CWRC/Orlando schemas? :)
+    let $entries_mentioning :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            and ( (: exclude items about the given organization :)
+                MODS_DS/mods:mods/mods:subject/mods:name/@valueURI != $query_uri_seq
+                or
+                not(MODS_DS/mods:mods/mods:subject/mods:name/@valueURI)
+            ) 
+            and (
+                CWRC_DS//(tei:orgName/@ref|ORGNAME/@REF)=$query_uri_seq
+                or
+                MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+                )
+            ]/@pid/data()
+          
+    
+    (: multimedia objects about the given organization :)
+    (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
+    info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
+    let $multimedia :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
+            and 
+              (
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/name/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
+                )
+            ]/@pid/data()
+
+    
+    return 
+        string-join(
+            (
+            cwJSON:outputJSONArray ("entries_about", $entries_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
+            , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_related )
+            , cwJSON:outputJSONArray ("multimedia", $multimedia )        
+            )
+            , ','
+        )
+};
+
+
+(: given an place entity, build a JSON representation from the material:)
+declare function local:populateMaterialPlace($query_uri_seq) as xs:string
+{
+    (: Entries about a given place :)     
+    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:geographic/@valueURI :)
+    let $entries_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
+            and MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI = $query_uri_seq
+            ]/@pid/data() 
+            
+    (: bibliographic about a given place :)    
+    (: mods:subject/topic/@valueURI :)
+    let $bibliographic_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+
+    (: Mentions of a given place (excluding about the given or) :)    
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
+    (: TEI ==> /persName/@ref or CWRC entry ==>/NAME/@REF or Orlando ==> /NAME/@REF or /subject/(geographic|topic)/@valueURI :)
+    let $entries_mentioning :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            and ( (: exclude items about the given place:)
+                MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
+                or 
+                not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
+              )
+            and (
+                CWRC_DS//(tei:placeName/@ref|PLACE/@REF)/data()=$query_uri_seq
+                or
+                MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+                )
+            ]/@pid/data()
+
+    (: bibliographic mentioning the given place  :)    
+    (:  :)
+    (:  :)
+    let $bibliographic_related :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:originInfo/mods:place/@valueURI=$query_uri_seq
+            or
+            MODS_DS/mods:mods/mods:relatedItem/mods:orginInfo/mods:place/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+        
+
+    (: multimedia objects about the given ploace :)
+    (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
+    info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
+    let $multimedia :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
+            and 
+              (
+                MODS_DS/mods:mods/mods:subject/(mods:geographic|mods:topic)/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:relatedItem/mods:originInfo/place/placeTerm/@valueURI = $query_uri_seq                
+                )
+            ]/@pid/data()
+            
+    return 
+        string-join(
+            (
+            cwJSON:outputJSONArray ("entries_about", $entries_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("entries_mentioning", $entries_mentioning )
+            , cwJSON:outputJSONArray ("bibliographic_related", $bibliographic_about )
+            , cwJSON:outputJSONArray ("multimedia", $multimedia )        
+            )
+            , ','
+        )
+};
+
+
+(: given an title entity, build a JSON representation from the material:)
+declare function local:populateMaterialTitle($query_uri_seq) as xs:string
+{
+    (: Entries about a given title :)     
+    (: cModel = cwrc:documentCModel & mods:genre = ("Biography", "Born digital") & mods:subject/mods:geographic/@valueURI :)
+    let $entries_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital")  :)
+            and MODS_DS/mods:mods/mods:subject/mods:titleInfo/@valueURI = $query_uri_seq
+            ]/@pid/data() 
+            
+    (: bibliographic about a given place :)    
+    (: mods:subject/topic/@valueURI :)
+    let $bibliographic_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+            ]/@pid/data() 
+
+            
+    (: Mentions of a given title (excluding about the given or) :)    
+    (: cModel = cwrc:documentCModel & NOT(mods:subject/mods:geogrpahic/@valueURI) :)
+    let $entries_mentioning :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            and ( (: exclude items about the given title :)
+                MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI != $query_uri_seq
+                or
+                not(MODS_DS/mods:mods/mods:subject/mods:geographic/@valueURI)
+              )
+            and (
+                CWRC_DS//(tei:title/@ref|TITLE/@REF)=$query_uri_seq
+                or
+                CWRC_DS//(tei:note/tei:bibl/@ref|(BIBCIT|TEXTSCOPE)/@REF)=$query_uri_seq
+                or                
+                MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq
+                )
+            ]/@pid/data()
+
+
+    (: multimedia objects about the given title :)
+    (: cModel = ("info:fedora/islandora:sp_basic_image", "info:fedora/islandora:sp_large_image_cmodel",  
+    info:fedora/islandora:sp-audioCModel", "info:fedora/islandora:sp_videoCModel") and mods:subject/mods:name/@valueURI  :)
+    let $multimedia :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data() = $CMODEL_MULTIMEDIA 
+            and 
+              (
+                MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:subject/mods:titleInfo/mods:title/@valueURI = $query_uri_seq
+                or
+                MODS_DS/mods:mods/mods:name/@valueURI = $query_uri_seq
+                or 
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI = $query_uri_seq
+                )
+            ]/@pid/data()
+
+        
+    return 
+        string-join(
+            (
+            cwJSON:outputJSONArray ("entries_about", $entries_about )
+            , cwJSON:outputJSONArray ("bibliographic_about", $bibliographic_about )
+            , cwJSON:outputJSONArray ("entries_other", $entries_mentioning )
+            , cwJSON:outputJSONArray ("multimedia", $multimedia )        
+            )
+            , ','
+        )
+};
+
+
+
+(: 
+* Build the entity material components ( for a given entity URI and return a JSON result
+* E.G., entires, oeuvre, multimedia, etc.)
+:)
+declare function local:buildEntityMaterial($query_uri_seq, $entityCModel) as xs:string?
+{
+  ',&#10;'
+  || ' "material": {'
+  ||
+    (
+    switch ( $entityCModel )
+            case "info:fedora/cwrc:person-entityCModel" 
+                return local:populateMaterialPerson($query_uri_seq)
+            case "info:fedora/cwrc:organization-entityCModel"
+                return local:populateMaterialOrganization($query_uri_seq)
+            case "info:fedora/cwrc:place-entityCModel"
+                return local:populateMaterialPlace($query_uri_seq)
+            case "info:fedora/cwrc:title-entityCModel"
+                return local:populateMaterialTitle($query_uri_seq)                
+            default 
+                return local:populateMaterialPerson($query_uri_seq) (: QUESTION: remove? :)
+    )
+    || "}"
+};
+
+
+
+
+
+
+(: ************ Assocations ******************* :)
+
+(:
+Co-mentions (associations) logic: (i.e. definition of co-mentions)
+Main entity (entity for which the EAP is being built) → mentioned in the MODS datastream of an object
+List all the other entities referenced in that MODS datastream
+Entity mentioned in the object datastream of a CWRCDocument cModel object
+If:
+CWRC Document cModel object meets the criteria to be labeled as the entry associated with the main entity → list all entities referenced in that entry
+Else:
+→ list only the entities referenced in the same chronstruct (CWRC, orlando)/tei:event/p/tei:note/ with the main entity
+
+:)
+
+
+(: given a person URI - find co-mentions of person  - see above for general definition of "co-mention":)
+declare function local:populatePersonCoMentioningPerson($query_uri_seq)
+{
+    let $uris_mods :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            MODS_DS/mods:mods/mods:subject/mods:name/@valueURI=$query_uri_seq
+            or
+            MODS_DS/mods:mods/mods:subject/mods:topic/@valueURI=$query_uri_seq 
             ]/(
-                CWRC_DS//(tei:persName/@ref|NAME/@REF)
+                MODS_DS/mods:mods/mods:subject/(mods:name|mods:topic)/@valueURI[data()!=$query_uri_seq]
+                |
+                MODS_DS/mods:mods/name/@valueURI[data()!=$query_uri_seq]
+                | 
+                MODS_DS/mods:mods/mods:relatedItem/mods:name/@valueURI[data()!=$query_uri_seq]
             )/data()
+    let $uris_entries_about :=
+        cwAccessibility:queryAccessControl(fn:collection())[
+            RELS-EXT_DS/rdf:RDF/rdf:Description/fedora-model:hasModel/@rdf:resource/data()="info:fedora/cwrc:documentCModel" 
+            (: and MODS_DS/mods:mods/mods:genre/text() = ("Biography", "Born digital") :)
+          and MODS_DS/mods:mods/mods:subject/mods:name/@valueURI = $query_uri_seq
+          ]/(
+              CWRC_DS//(tei:persName/@ref|NAME/@REF)
+          )/data()
     let $uris_entries_context :=
         cwAccessibility:queryAccessControl(fn:collection())/(
                 CWRC_DS//tei:persName[
