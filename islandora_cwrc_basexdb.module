@@ -63,5 +63,26 @@ function islandora_cwrc_basexdb_permission() {
   );
 }
 
+/**
+ * Implements hook_libraries_info().
+ */
+function islandora_cwrc_basexdb_libraries_info() {
+  $libraries = array();
 
+  // Support for BaseX, the XML Database.
+  $libraries['basex-api'] = array(
+    'name' => 'CWRC BaseX XML Database',
+    'vendor url' => 'https://github.com/BaseXdb/basex',
+    'download url' => 'https://github.com/BaseXdb/basex/blob/master/basex-api/src/main/php/BaseXClient.php',
+    'download file url' => 'https://raw.githubusercontent.com/BaseXdb/basex/master/basex-api/src/main/php/BaseXClient.php',
+    'version arguments' => array(
+      'file' => 'BaseXClient.php',
+      'pattern' => '@Works with BaseX ([0-9a-zA-Z\.-]+) and later@',
+    ),
+    'files' => array(
+      'php' => array('BaseXClient.php'),
+    ),
+  );
 
+  return $libraries;
+}
