@@ -13,15 +13,14 @@ function islandora_cwrc_basexdb_requirements($phase) {
   $requirements = array(
     'islandora_cwrc_basexdb' => array('title' => $t('CWRC BaseX XML Database')),
   );
-  $library = array(
-    'library path' => libraries_get_path('basex-api'),
-  );
-  if (file_exists($library['library path'])) {
+  $library = libraries_detect('basex-api');
+  if ($library['installed']) {
     $requirements['islandora_cwrc_basexdb']['severity'] = REQUIREMENT_OK;
+    $requirements['islandora_cwrc_basexdb']['value'] = $library['version'];
   }
   else {
     $requirements['islandora_cwrc_basexdb']['severity'] = REQUIREMENT_ERROR;
-    $requirements['islandora_cwrc_basexdb']['value'] = $t('Not found');
+    $requirements['islandora_cwrc_basexdb']['value'] = $library['error'];
     $requirements['islandora_cwrc_basexdb']['description'] = $t('The <a href="@url">BaseX PHP client Library</a> is missing. <a href="@download">Download @library-file</a> and extract it into the <code>@directory</code> directory. Add the folder <code>@library-folder</code> and add @library-file.', array(
         '@cwrc' => 'https://github.com/BaseXdb/basex',
         '@download' => 'https://github.com/BaseXdb/basex/blob/master/basex-api/src/main/php/BaseXClient.php',
