@@ -11,18 +11,18 @@
 function islandora_cwrc_basexdb_requirements($phase) {
   $t = get_t();
   $requirements = array(
-    'cwrc' => array('title' => $t('CWRC BaseX XML Database')),
+    'islandora_cwrc_basexdb' => array('title' => $t('CWRC BaseX XML Database')),
   );
   $library = array(
     'library path' => libraries_get_path('basex-api'),
   );
   if (file_exists($library['library path'])) {
-    $requirements['cwrc']['severity'] = REQUIREMENT_OK;
+    $requirements['islandora_cwrc_basexdb']['severity'] = REQUIREMENT_OK;
   }
   else {
-    $requirements['cwrc']['severity'] = REQUIREMENT_ERROR;
-    $requirements['cwrc']['value'] = $t('Not found');
-    $requirements['cwrc']['description'] = $t('The <a href="@url">BaseX PHP client Library</a> is missing. <a href="@download">Download @library-file</a> and extract it into the <code>@directory</code> directory. Add the folder <code>@library-folder</code> and add @library-file.', array(
+    $requirements['islandora_cwrc_basexdb']['severity'] = REQUIREMENT_ERROR;
+    $requirements['islandora_cwrc_basexdb']['value'] = $t('Not found');
+    $requirements['islandora_cwrc_basexdb']['description'] = $t('The <a href="@url">BaseX PHP client Library</a> is missing. <a href="@download">Download @library-file</a> and extract it into the <code>@directory</code> directory. Add the folder <code>@library-folder</code> and add @library-file.', array(
         '@cwrc' => 'https://github.com/BaseXdb/basex',
         '@download' => 'https://github.com/BaseXdb/basex/blob/master/basex-api/src/main/php/BaseXClient.php',
         '@directory' => 'sites/all/libraries',
