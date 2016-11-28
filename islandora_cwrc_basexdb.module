@@ -72,9 +72,9 @@ function islandora_cwrc_basexdb_libraries_info() {
   // Support for BaseX, the XML Database.
   $libraries['basex-api'] = array(
     'name' => 'CWRC BaseX XML Database',
-    'vendor url' => 'https://github.com/BaseXdb/basex',
-    'download url' => 'https://github.com/BaseXdb/basex/blob/master/basex-api/src/main/php/BaseXClient.php',
-    'download file url' => 'https://raw.githubusercontent.com/BaseXdb/basex/master/basex-api/src/main/php/BaseXClient.php',
+    'vendor url' => 'https://github.com/cwrc/basex-api',
+    'download url' => 'https://github.com/cwrc/basex-api/BaseXClient.php',
+    'download file url' => 'https://raw.githubusercontent.com/cwrc/basex-api/master/BaseXClient.php',
     'version arguments' => array(
       'file' => 'BaseXClient.php',
       'pattern' => '@Works with BaseX ([0-9a-zA-Z\.-]+) and later@',
